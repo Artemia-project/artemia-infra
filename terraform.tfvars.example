@@ -1,0 +1,21 @@
+# Example Terraform variables file
+# Copy this file to terraform.tfvars and fill in your actual values
+# DO NOT commit terraform.tfvars to git - it contains sensitive information
+
+# Azure Subscription ID
+subscription_id = "your-subscription-id-here"
+
+# Email addresses for notifications
+primary_email   = "your-primary-email@example.com"
+secondary_email = "your-secondary-email@example.com"
+
+# SSH Public Keys for VMs
+# You can get these from your existing Azure SSH public keys or generate new ones
+ssh_public_key_backend       = "ssh-rsa your-backend-ssh-key"
+ssh_public_key_llm          = "ssh-rsa your-llm-ssh-key"
+ssh_public_key_elasticsearch = "ssh-rsa your-elasticsearch-ssh-key"
+
+# Optional: Override default values
+# resource_group_name   = "artemia-rg"
+# location             = "Korea Central"
+# storage_account_name = "artemiastatestore"
