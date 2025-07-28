@@ -38,6 +38,14 @@ Azure Storage Account의 액세스 키를 환경변수로 설정하는 스크립
 source ./set-arm-key.sh
 ```
 
+### `terraform-import-commands.sh`
+기존 Azure 리소스를 Terraform 상태로 가져오기 위한 명령어들을 포함한 스크립트입니다.
+
+**주의사항:**
+- 이 스크립트는 **참고용으로만** 사용하세요
+- 실제로는 정상 동작하지 않을 수 있습니다
+- 리소스 임포트 시에는 수동으로 각 명령어를 확인하고 실행하시기 바랍니다
+
 ## 배포 순서
 
 1. Azure CLI 로그인
