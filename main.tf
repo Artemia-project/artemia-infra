@@ -1024,6 +1024,18 @@ resource "azurerm_mssql_virtual_network_rule" "res-112" {
 #   server_security_alert_policy_id = azurerm_mssql_server_security_alert_policy.res-110.id
 #   storage_container_path          = "https://artemiastatestore.blob.core.windows.net/vulnerability-assessment"
 # }
+resource "azurerm_storage_account" "artemiadata" {
+  account_replication_type        = "LRS"
+  account_tier                    = "Standard"
+  allow_nested_items_to_be_public = false
+  location                        = "koreacentral"
+  name                            = "artemiadata"
+  resource_group_name             = "artemia-rg"
+  depends_on = [
+    azurerm_resource_group.res-0
+  ]
+}
+
 resource "azurerm_storage_account" "res-114" {
   account_replication_type        = "LRS"
   account_tier                    = "Standard"
