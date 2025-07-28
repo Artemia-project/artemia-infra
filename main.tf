@@ -36,7 +36,7 @@ resource "azurerm_ssh_public_key" "res-6" {
 }
 resource "azurerm_ssh_public_key" "res-7" {
   location            = "koreacentral"
-  name                = "elasticsearch-vm-keypair"
+  name                = "artemia-elasticsearch-vm-keypair"
   public_key          = var.ssh_public_key_elasticsearch
   resource_group_name = "artemia-rg"
   depends_on = [
@@ -98,7 +98,7 @@ resource "azurerm_linux_virtual_machine" "res-9" {
 resource "azurerm_linux_virtual_machine" "res-10" {
   admin_username        = "azureuser"
   location              = "koreacentral"
-  name                  = "elasticsearch-vm"
+  name                  = "artemia-elasticsearch-vm"
   network_interface_ids = [azurerm_network_interface.res-48.id]
   resource_group_name   = "artemia-rg"
   secure_boot_enabled   = true
@@ -230,7 +230,7 @@ resource "azurerm_monitor_metric_alert" "res-20" {
 resource "azurerm_monitor_metric_alert" "res-21" {
   auto_mitigate       = false
   frequency           = "PT5M"
-  name                = "Available Memory Bytes - elasticsearch-vm"
+  name                = "Available Memory Bytes - artemia-elasticsearch-vm"
   resource_group_name = "artemia-rg"
   scopes              = [azurerm_linux_virtual_machine.res-10.id]
   tags = {
@@ -290,7 +290,7 @@ resource "azurerm_monitor_metric_alert" "res-23" {
 resource "azurerm_monitor_metric_alert" "res-24" {
   auto_mitigate       = false
   frequency           = "PT5M"
-  name                = "Data Disk IOPS Consumed Percentage - elasticsearch-vm"
+  name                = "Data Disk IOPS Consumed Percentage - artemia-elasticsearch-vm"
   resource_group_name = "artemia-rg"
   scopes              = [azurerm_linux_virtual_machine.res-10.id]
   tags = {
@@ -350,7 +350,7 @@ resource "azurerm_monitor_metric_alert" "res-26" {
 resource "azurerm_monitor_metric_alert" "res-27" {
   auto_mitigate       = false
   frequency           = "PT5M"
-  name                = "Network In Total - elasticsearch-vm"
+  name                = "Network In Total - artemia-elasticsearch-vm"
   resource_group_name = "artemia-rg"
   scopes              = [azurerm_linux_virtual_machine.res-10.id]
   tags = {
@@ -410,7 +410,7 @@ resource "azurerm_monitor_metric_alert" "res-29" {
 resource "azurerm_monitor_metric_alert" "res-30" {
   auto_mitigate       = false
   frequency           = "PT5M"
-  name                = "Network Out Total - elasticsearch-vm"
+  name                = "Network Out Total - artemia-elasticsearch-vm"
   resource_group_name = "artemia-rg"
   scopes              = [azurerm_linux_virtual_machine.res-10.id]
   tags = {
@@ -470,7 +470,7 @@ resource "azurerm_monitor_metric_alert" "res-32" {
 resource "azurerm_monitor_metric_alert" "res-33" {
   auto_mitigate       = false
   frequency           = "PT5M"
-  name                = "OS Disk IOPS Consumed Percentage - elasticsearch-vm"
+  name                = "OS Disk IOPS Consumed Percentage - artemia-elasticsearch-vm"
   resource_group_name = "artemia-rg"
   scopes              = [azurerm_linux_virtual_machine.res-10.id]
   tags = {
@@ -530,7 +530,7 @@ resource "azurerm_monitor_metric_alert" "res-35" {
 resource "azurerm_monitor_metric_alert" "res-36" {
   auto_mitigate       = false
   frequency           = "PT5M"
-  name                = "Percentage CPU - elasticsearch-vm"
+  name                = "Percentage CPU - artemia-elasticsearch-vm"
   resource_group_name = "artemia-rg"
   scopes              = [azurerm_linux_virtual_machine.res-10.id]
   tags = {
@@ -590,7 +590,7 @@ resource "azurerm_monitor_metric_alert" "res-38" {
 resource "azurerm_monitor_metric_alert" "res-39" {
   auto_mitigate       = false
   frequency           = "PT5M"
-  name                = "VM Availability - elasticsearch-vm"
+  name                = "VM Availability - artemia-elasticsearch-vm"
   resource_group_name = "artemia-rg"
   scopes              = [azurerm_linux_virtual_machine.res-10.id]
   tags = {
@@ -668,7 +668,7 @@ resource "azurerm_network_interface_security_group_association" "res-47" {
 resource "azurerm_network_interface" "res-48" {
   accelerated_networking_enabled = true
   location                       = "koreacentral"
-  name                           = "elasticsearch-vm291"
+  name                           = "artemia-elasticsearch-vm291"
   resource_group_name            = "artemia-rg"
   ip_configuration {
     name                          = "ipconfig1"
@@ -827,7 +827,7 @@ resource "azurerm_network_security_rule" "res-59" {
 }
 resource "azurerm_network_security_group" "res-60" {
   location            = "koreacentral"
-  name                = "elasticsearch-vm-nsg"
+  name                = "artemia-elasticsearch-vm-nsg"
   resource_group_name = "artemia-rg"
   depends_on = [
     azurerm_resource_group.res-0
@@ -839,7 +839,7 @@ resource "azurerm_network_security_rule" "res-61" {
   destination_port_range      = "80"
   direction                   = "Inbound"
   name                        = "HTTP"
-  network_security_group_name = "elasticsearch-vm-nsg"
+  network_security_group_name = "artemia-elasticsearch-vm-nsg"
   priority                    = 320
   protocol                    = "Tcp"
   resource_group_name         = "artemia-rg"
@@ -855,7 +855,7 @@ resource "azurerm_network_security_rule" "res-62" {
   destination_port_range      = "443"
   direction                   = "Inbound"
   name                        = "HTTPS"
-  network_security_group_name = "elasticsearch-vm-nsg"
+  network_security_group_name = "artemia-elasticsearch-vm-nsg"
   priority                    = 340
   protocol                    = "Tcp"
   resource_group_name         = "artemia-rg"
@@ -871,7 +871,7 @@ resource "azurerm_network_security_rule" "res-63" {
   destination_port_range      = "3389"
   direction                   = "Inbound"
   name                        = "RDP"
-  network_security_group_name = "elasticsearch-vm-nsg"
+  network_security_group_name = "artemia-elasticsearch-vm-nsg"
   priority                    = 360
   protocol                    = "Tcp"
   resource_group_name         = "artemia-rg"
@@ -887,7 +887,7 @@ resource "azurerm_network_security_rule" "res-64" {
   destination_port_range      = "22"
   direction                   = "Inbound"
   name                        = "SSH"
-  network_security_group_name = "elasticsearch-vm-nsg"
+  network_security_group_name = "artemia-elasticsearch-vm-nsg"
   priority                    = 300
   protocol                    = "Tcp"
   resource_group_name         = "artemia-rg"
@@ -918,7 +918,7 @@ resource "azurerm_public_ip" "res-66" {
 resource "azurerm_public_ip" "res-67" {
   allocation_method   = "Static"
   location            = "koreacentral"
-  name                = "elasticsearch-vm-ip"
+  name                = "artemia-elasticsearch-vm-ip"
   resource_group_name = "artemia-rg"
   depends_on = [
     azurerm_resource_group.res-0
