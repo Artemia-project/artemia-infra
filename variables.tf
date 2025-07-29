@@ -55,3 +55,16 @@ variable "ssh_public_key_elasticsearch" {
   type        = string
   sensitive   = true
 }
+
+# Database configuration
+variable "administrator_login" {
+  description = "Administrator login username for SQL Server"
+  type        = string
+  default     = "artemia_admin"
+}
+
+variable "administrator_login_password" {
+  description = "Administrator login password for SQL Server"
+  type        = string
+  sensitive   = true
+}
