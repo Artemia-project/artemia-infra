@@ -1,14 +1,16 @@
 resource "azurerm_resource_group" "res-0" {
-  location = "koreacentral"
-  name     = "artemia-rg"
+  location = local.location
+  name     = local.resource_group_name
+  tags     = local.tags
 }
 resource "azurerm_cognitive_account" "res-1" {
   custom_subdomain_name = "artemia-openai"
   kind                  = "OpenAI"
-  location              = "koreacentral"
+  location              = local.location
   name                  = "artemia-openai"
-  resource_group_name   = "artemia-rg"
+  resource_group_name   = local.resource_group_name
   sku_name              = "S0"
+  tags                  = local.tags
   network_acls {
     default_action = "Allow"
   }
@@ -17,40 +19,44 @@ resource "azurerm_cognitive_account" "res-1" {
   ]
 }
 resource "azurerm_ssh_public_key" "res-5" {
-  location            = "koreacentral"
+  location            = local.location
   name                = "artemia-backend-vm-keypair"
   public_key          = var.ssh_public_key_backend
-  resource_group_name = "artemia-rg"
+  resource_group_name = local.resource_group_name
+  tags                = local.tags
   depends_on = [
     azurerm_resource_group.res-0
   ]
 }
 resource "azurerm_ssh_public_key" "res-6" {
-  location            = "koreacentral"
+  location            = local.location
   name                = "artemia-llm-vm-keypair"
   public_key          = var.ssh_public_key_llm
-  resource_group_name = "artemia-rg"
+  resource_group_name = local.resource_group_name
+  tags                = local.tags
   depends_on = [
     azurerm_resource_group.res-0
   ]
 }
 resource "azurerm_ssh_public_key" "res-7" {
-  location            = "koreacentral"
+  location            = local.location
   name                = "artemia-elasticsearch-vm-keypair"
   public_key          = var.ssh_public_key_elasticsearch
-  resource_group_name = "artemia-rg"
+  resource_group_name = local.resource_group_name
+  tags                = local.tags
   depends_on = [
     azurerm_resource_group.res-0
   ]
 }
 resource "azurerm_linux_virtual_machine" "res-8" {
   admin_username        = "azureuser"
-  location              = "koreacentral"
+  location              = local.location
   name                  = "artemia-backend-vm"
   network_interface_ids = [azurerm_network_interface.res-42.id]
-  resource_group_name   = "artemia-rg"
+  resource_group_name   = local.resource_group_name
   secure_boot_enabled   = true
   size                  = "Standard_D2s_v5"
+  tags                  = local.tags
   vtpm_enabled          = true
   additional_capabilities {
   }
@@ -71,12 +77,13 @@ resource "azurerm_linux_virtual_machine" "res-8" {
 }
 resource "azurerm_linux_virtual_machine" "res-9" {
   admin_username        = "azureuser"
-  location              = "koreacentral"
+  location              = local.location
   name                  = "artemia-llm-vm"
   network_interface_ids = [azurerm_network_interface.res-45.id]
-  resource_group_name   = "artemia-rg"
+  resource_group_name   = local.resource_group_name
   secure_boot_enabled   = true
   size                  = "Standard_E4ds_v4"
+  tags                  = local.tags
   vtpm_enabled          = true
   additional_capabilities {
   }
@@ -97,12 +104,13 @@ resource "azurerm_linux_virtual_machine" "res-9" {
 }
 resource "azurerm_linux_virtual_machine" "res-10" {
   admin_username        = "azureuser"
-  location              = "koreacentral"
+  location              = local.location
   name                  = "artemia-elasticsearch-vm"
   network_interface_ids = [azurerm_network_interface.res-48.id]
-  resource_group_name   = "artemia-rg"
+  resource_group_name   = local.resource_group_name
   secure_boot_enabled   = true
   size                  = "Standard_D2s_v5"
+  tags                  = local.tags
   vtpm_enabled          = true
   additional_capabilities {
   }
@@ -136,7 +144,7 @@ resource "azurerm_eventhub_namespace_authorization_rule" "res-12" {
   manage              = true
   name                = "RootManageSharedAccessKey"
   namespace_name      = "artemia-event-hubs-kafka"
-  resource_group_name = "artemia-rg"
+  resource_group_name = local.resource_group_name
   send                = true
   depends_on = [
     azurerm_eventhub_namespace.res-11
@@ -152,7 +160,7 @@ resource "azurerm_eventhub_consumer_group" "res-14" {
   eventhub_name       = "artemia-events"
   name                = "Default"
   namespace_name      = "artemia-event-hubs-kafka"
-  resource_group_name = "artemia-rg"
+  resource_group_name = local.resource_group_name
   depends_on = [
     azurerm_eventhub.res-13
   ]
@@ -161,7 +169,7 @@ resource "azurerm_eventhub_consumer_group" "res-15" {
   eventhub_name       = "artemia-events"
   name                = "llm.admin"
   namespace_name      = "artemia-event-hubs-kafka"
-  resource_group_name = "artemia-rg"
+  resource_group_name = local.resource_group_name
   depends_on = [
     azurerm_eventhub.res-13
   ]
@@ -170,14 +178,14 @@ resource "azurerm_eventhub_consumer_group" "res-16" {
   eventhub_name       = "artemia-events"
   name                = "llm.user"
   namespace_name      = "artemia-event-hubs-kafka"
-  resource_group_name = "artemia-rg"
+  resource_group_name = local.resource_group_name
   depends_on = [
     azurerm_eventhub.res-13
   ]
 }
 resource "azurerm_monitor_action_group" "res-18" {
   name                = "artemia-ag"
-  resource_group_name = "artemia-rg"
+  resource_group_name = local.resource_group_name
   short_name          = "Artemia AG"
   email_receiver {
     email_address = var.primary_email
@@ -191,7 +199,7 @@ resource "azurerm_monitor_metric_alert" "res-19" {
   auto_mitigate       = false
   frequency           = "PT5M"
   name                = "Available Memory Bytes - artemia-backend-vm"
-  resource_group_name = "artemia-rg"
+  resource_group_name = local.resource_group_name
   scopes              = [azurerm_linux_virtual_machine.res-8.id]
   tags = {
     alertRuleCreatedWithAlertsRecommendations = "true"
@@ -211,7 +219,7 @@ resource "azurerm_monitor_metric_alert" "res-20" {
   auto_mitigate       = false
   frequency           = "PT5M"
   name                = "Available Memory Bytes - artemia-llm-vm"
-  resource_group_name = "artemia-rg"
+  resource_group_name = local.resource_group_name
   scopes              = [azurerm_linux_virtual_machine.res-9.id]
   tags = {
     alertRuleCreatedWithAlertsRecommendations = "true"
@@ -231,7 +239,7 @@ resource "azurerm_monitor_metric_alert" "res-21" {
   auto_mitigate       = false
   frequency           = "PT5M"
   name                = "Available Memory Bytes - artemia-elasticsearch-vm"
-  resource_group_name = "artemia-rg"
+  resource_group_name = local.resource_group_name
   scopes              = [azurerm_linux_virtual_machine.res-10.id]
   tags = {
     alertRuleCreatedWithAlertsRecommendations = "true"
@@ -251,7 +259,7 @@ resource "azurerm_monitor_metric_alert" "res-22" {
   auto_mitigate       = false
   frequency           = "PT5M"
   name                = "Data Disk IOPS Consumed Percentage - artemia-backend-vm"
-  resource_group_name = "artemia-rg"
+  resource_group_name = local.resource_group_name
   scopes              = [azurerm_linux_virtual_machine.res-8.id]
   tags = {
     alertRuleCreatedWithAlertsRecommendations = "true"
@@ -271,7 +279,7 @@ resource "azurerm_monitor_metric_alert" "res-23" {
   auto_mitigate       = false
   frequency           = "PT5M"
   name                = "Data Disk IOPS Consumed Percentage - artemia-llm-vm"
-  resource_group_name = "artemia-rg"
+  resource_group_name = local.resource_group_name
   scopes              = [azurerm_linux_virtual_machine.res-9.id]
   tags = {
     alertRuleCreatedWithAlertsRecommendations = "true"
@@ -291,7 +299,7 @@ resource "azurerm_monitor_metric_alert" "res-24" {
   auto_mitigate       = false
   frequency           = "PT5M"
   name                = "Data Disk IOPS Consumed Percentage - artemia-elasticsearch-vm"
-  resource_group_name = "artemia-rg"
+  resource_group_name = local.resource_group_name
   scopes              = [azurerm_linux_virtual_machine.res-10.id]
   tags = {
     alertRuleCreatedWithAlertsRecommendations = "true"
@@ -311,7 +319,7 @@ resource "azurerm_monitor_metric_alert" "res-25" {
   auto_mitigate       = false
   frequency           = "PT5M"
   name                = "Network In Total - artemia-backend-vm"
-  resource_group_name = "artemia-rg"
+  resource_group_name = local.resource_group_name
   scopes              = [azurerm_linux_virtual_machine.res-8.id]
   tags = {
     alertRuleCreatedWithAlertsRecommendations = "true"
@@ -331,7 +339,7 @@ resource "azurerm_monitor_metric_alert" "res-26" {
   auto_mitigate       = false
   frequency           = "PT5M"
   name                = "Network In Total - artemia-llm-vm"
-  resource_group_name = "artemia-rg"
+  resource_group_name = local.resource_group_name
   scopes              = [azurerm_linux_virtual_machine.res-9.id]
   tags = {
     alertRuleCreatedWithAlertsRecommendations = "true"
@@ -351,7 +359,7 @@ resource "azurerm_monitor_metric_alert" "res-27" {
   auto_mitigate       = false
   frequency           = "PT5M"
   name                = "Network In Total - artemia-elasticsearch-vm"
-  resource_group_name = "artemia-rg"
+  resource_group_name = local.resource_group_name
   scopes              = [azurerm_linux_virtual_machine.res-10.id]
   tags = {
     alertRuleCreatedWithAlertsRecommendations = "true"
@@ -371,7 +379,7 @@ resource "azurerm_monitor_metric_alert" "res-28" {
   auto_mitigate       = false
   frequency           = "PT5M"
   name                = "Network Out Total - artemia-backend-vm"
-  resource_group_name = "artemia-rg"
+  resource_group_name = local.resource_group_name
   scopes              = [azurerm_linux_virtual_machine.res-8.id]
   tags = {
     alertRuleCreatedWithAlertsRecommendations = "true"
@@ -391,7 +399,7 @@ resource "azurerm_monitor_metric_alert" "res-29" {
   auto_mitigate       = false
   frequency           = "PT5M"
   name                = "Network Out Total - artemia-llm-vm"
-  resource_group_name = "artemia-rg"
+  resource_group_name = local.resource_group_name
   scopes              = [azurerm_linux_virtual_machine.res-9.id]
   tags = {
     alertRuleCreatedWithAlertsRecommendations = "true"
@@ -411,7 +419,7 @@ resource "azurerm_monitor_metric_alert" "res-30" {
   auto_mitigate       = false
   frequency           = "PT5M"
   name                = "Network Out Total - artemia-elasticsearch-vm"
-  resource_group_name = "artemia-rg"
+  resource_group_name = local.resource_group_name
   scopes              = [azurerm_linux_virtual_machine.res-10.id]
   tags = {
     alertRuleCreatedWithAlertsRecommendations = "true"
@@ -431,7 +439,7 @@ resource "azurerm_monitor_metric_alert" "res-31" {
   auto_mitigate       = false
   frequency           = "PT5M"
   name                = "OS Disk IOPS Consumed Percentage - artemia-backend-vm"
-  resource_group_name = "artemia-rg"
+  resource_group_name = local.resource_group_name
   scopes              = [azurerm_linux_virtual_machine.res-8.id]
   tags = {
     alertRuleCreatedWithAlertsRecommendations = "true"
@@ -451,7 +459,7 @@ resource "azurerm_monitor_metric_alert" "res-32" {
   auto_mitigate       = false
   frequency           = "PT5M"
   name                = "OS Disk IOPS Consumed Percentage - artemia-llm-vm"
-  resource_group_name = "artemia-rg"
+  resource_group_name = local.resource_group_name
   scopes              = [azurerm_linux_virtual_machine.res-9.id]
   tags = {
     alertRuleCreatedWithAlertsRecommendations = "true"
@@ -471,7 +479,7 @@ resource "azurerm_monitor_metric_alert" "res-33" {
   auto_mitigate       = false
   frequency           = "PT5M"
   name                = "OS Disk IOPS Consumed Percentage - artemia-elasticsearch-vm"
-  resource_group_name = "artemia-rg"
+  resource_group_name = local.resource_group_name
   scopes              = [azurerm_linux_virtual_machine.res-10.id]
   tags = {
     alertRuleCreatedWithAlertsRecommendations = "true"
@@ -491,7 +499,7 @@ resource "azurerm_monitor_metric_alert" "res-34" {
   auto_mitigate       = false
   frequency           = "PT5M"
   name                = "Percentage CPU - artemia-backend-vm"
-  resource_group_name = "artemia-rg"
+  resource_group_name = local.resource_group_name
   scopes              = [azurerm_linux_virtual_machine.res-8.id]
   tags = {
     alertRuleCreatedWithAlertsRecommendations = "true"
@@ -511,7 +519,7 @@ resource "azurerm_monitor_metric_alert" "res-35" {
   auto_mitigate       = false
   frequency           = "PT5M"
   name                = "Percentage CPU - artemia-llm-vm"
-  resource_group_name = "artemia-rg"
+  resource_group_name = local.resource_group_name
   scopes              = [azurerm_linux_virtual_machine.res-9.id]
   tags = {
     alertRuleCreatedWithAlertsRecommendations = "true"
@@ -531,7 +539,7 @@ resource "azurerm_monitor_metric_alert" "res-36" {
   auto_mitigate       = false
   frequency           = "PT5M"
   name                = "Percentage CPU - artemia-elasticsearch-vm"
-  resource_group_name = "artemia-rg"
+  resource_group_name = local.resource_group_name
   scopes              = [azurerm_linux_virtual_machine.res-10.id]
   tags = {
     alertRuleCreatedWithAlertsRecommendations = "true"
@@ -551,7 +559,7 @@ resource "azurerm_monitor_metric_alert" "res-37" {
   auto_mitigate       = false
   frequency           = "PT5M"
   name                = "VM Availability - artemia-backend-vm"
-  resource_group_name = "artemia-rg"
+  resource_group_name = local.resource_group_name
   scopes              = [azurerm_linux_virtual_machine.res-8.id]
   tags = {
     alertRuleCreatedWithAlertsRecommendations = "true"
@@ -571,7 +579,7 @@ resource "azurerm_monitor_metric_alert" "res-38" {
   auto_mitigate       = false
   frequency           = "PT5M"
   name                = "VM Availability - artemia-llm-vm"
-  resource_group_name = "artemia-rg"
+  resource_group_name = local.resource_group_name
   scopes              = [azurerm_linux_virtual_machine.res-9.id]
   tags = {
     alertRuleCreatedWithAlertsRecommendations = "true"
@@ -591,7 +599,7 @@ resource "azurerm_monitor_metric_alert" "res-39" {
   auto_mitigate       = false
   frequency           = "PT5M"
   name                = "VM Availability - artemia-elasticsearch-vm"
-  resource_group_name = "artemia-rg"
+  resource_group_name = local.resource_group_name
   scopes              = [azurerm_linux_virtual_machine.res-10.id]
   tags = {
     alertRuleCreatedWithAlertsRecommendations = "true"
@@ -608,9 +616,9 @@ resource "azurerm_monitor_metric_alert" "res-39" {
   }
 }
 resource "azurerm_lb" "res-40" {
-  location            = "koreacentral"
+  location            = local.location
   name                = "artemia-load-balancer"
-  resource_group_name = "artemia-rg"
+  resource_group_name = local.resource_group_name
   frontend_ip_configuration {
     name  = "lb-frontend-ip"
     zones = ["1", "2", "3"]
@@ -682,9 +690,9 @@ resource "azurerm_network_interface_security_group_association" "res-49" {
   network_security_group_id = azurerm_network_security_group.res-60.id
 }
 resource "azurerm_network_security_group" "res-50" {
-  location            = "koreacentral"
+  location            = local.location
   name                = "artemia-backend-vm-nsg"
-  resource_group_name = "artemia-rg"
+  resource_group_name = local.resource_group_name
   depends_on = [
     azurerm_resource_group.res-0
   ]
@@ -754,9 +762,9 @@ resource "azurerm_network_security_rule" "res-54" {
   ]
 }
 resource "azurerm_network_security_group" "res-55" {
-  location            = "koreacentral"
+  location            = local.location
   name                = "artemia-llm-vm-nsg"
-  resource_group_name = "artemia-rg"
+  resource_group_name = local.resource_group_name
   depends_on = [
     azurerm_resource_group.res-0
   ]
@@ -826,9 +834,9 @@ resource "azurerm_network_security_rule" "res-59" {
   ]
 }
 resource "azurerm_network_security_group" "res-60" {
-  location            = "koreacentral"
+  location            = local.location
   name                = "artemia-elasticsearch-vm-nsg"
-  resource_group_name = "artemia-rg"
+  resource_group_name = local.resource_group_name
   depends_on = [
     azurerm_resource_group.res-0
   ]
@@ -899,36 +907,36 @@ resource "azurerm_network_security_rule" "res-64" {
 }
 resource "azurerm_public_ip" "res-65" {
   allocation_method   = "Static"
-  location            = "koreacentral"
+  location            = local.location
   name                = "artemia-backend-vm-ip"
-  resource_group_name = "artemia-rg"
+  resource_group_name = local.resource_group_name
   depends_on = [
     azurerm_resource_group.res-0
   ]
 }
 resource "azurerm_public_ip" "res-66" {
   allocation_method   = "Static"
-  location            = "koreacentral"
+  location            = local.location
   name                = "artemia-llm-vm-ip"
-  resource_group_name = "artemia-rg"
+  resource_group_name = local.resource_group_name
   depends_on = [
     azurerm_resource_group.res-0
   ]
 }
 resource "azurerm_public_ip" "res-67" {
   allocation_method   = "Static"
-  location            = "koreacentral"
+  location            = local.location
   name                = "artemia-elasticsearch-vm-ip"
-  resource_group_name = "artemia-rg"
+  resource_group_name = local.resource_group_name
   depends_on = [
     azurerm_resource_group.res-0
   ]
 }
 resource "azurerm_virtual_network" "res-68" {
   address_space       = ["10.0.0.0/16"]
-  location            = "koreacentral"
+  location            = local.location
   name                = "artemia-vnet"
-  resource_group_name = "artemia-rg"
+  resource_group_name = local.resource_group_name
   depends_on = [
     azurerm_resource_group.res-0
   ]
@@ -954,9 +962,9 @@ resource "azurerm_subnet" "res-70" {
 }
 resource "azurerm_mssql_server" "res-71" {
   administrator_login = "artemia_admin"
-  location            = "koreacentral"
+  location            = local.location
   name                = "artemia"
-  resource_group_name = "artemia-rg"
+  resource_group_name = local.resource_group_name
   version             = "12.0"
   azuread_administrator {
     azuread_authentication_only = true
@@ -1008,7 +1016,7 @@ resource "azurerm_mssql_firewall_rule" "res-108" {
   start_ip_address = "0.0.0.0"
 }
 resource "azurerm_mssql_server_security_alert_policy" "res-110" {
-  resource_group_name = "artemia-rg"
+  resource_group_name = local.resource_group_name
   server_name         = "artemia"
   state               = "Enabled"
   depends_on = [
@@ -1079,7 +1087,7 @@ resource "azurerm_storage_account_queue_properties" "res-119" {
 }
 resource "azurerm_monitor_action_group" "res-121" {
   name                = "RecommendedAlertRules-AG-1"
-  resource_group_name = "artemia-rg"
+  resource_group_name = local.resource_group_name
   short_name          = "recalert1"
   email_receiver {
     email_address           = var.primary_email

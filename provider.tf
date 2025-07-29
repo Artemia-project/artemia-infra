@@ -1,10 +1,4 @@
 provider "azurerm" {
-  features {
-  }
-  use_msi                         = false
-  use_cli                         = true
-  use_oidc                        = false
-  resource_provider_registrations = "none"
-  subscription_id                 = var.subscription_id
-  environment                     = "public"
+  features {}
+  subscription_id = var.subscription_id
 }
