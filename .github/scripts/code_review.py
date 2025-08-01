@@ -28,8 +28,7 @@ def get_review_from_gemini(diff: str, api_key: str) -> str:
     }
     prompt = textwrap.dedent(f"""
         You are a senior software engineer performing a code review.
-        Please provide a concise and constructive code review for the following diff from a pull request.
-        Please provide the review in Korean.
+        Please provide a concise and constructive code review for the following diff from a pull request. Please provide the review in Korean, focusing on the 3 most important points. Think step by step.
 
         {diff}
         """)
