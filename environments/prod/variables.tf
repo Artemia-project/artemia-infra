@@ -74,3 +74,310 @@ variable "sku_name" {
   type        = string
   default     = "GP_S_Gen5_1"
 }
+
+# Network configuration
+variable "project_name" {
+  description = "Name of the project for resource naming"
+  type        = string
+  default     = "artemia"
+}
+
+variable "vnet_name" {
+  description = "Name of the virtual network"
+  type        = string
+  default     = "artemia-vnet"
+}
+
+variable "vnet_address_space" {
+  description = "Address space for the virtual network"
+  type        = list(string)
+  default     = ["10.0.0.0/16"]
+}
+
+variable "default_subnet_address_prefixes" {
+  description = "Address prefixes for the default subnet"
+  type        = list(string)
+  default     = ["10.0.0.0/24"]
+}
+
+variable "firewall_subnet_address_prefixes" {
+  description = "Address prefixes for the firewall subnet"
+  type        = list(string)
+  default     = ["10.0.1.0/26"]
+}
+
+variable "load_balancer_name" {
+  description = "Name of the load balancer"
+  type        = string
+  default     = "artemia-load-balancer"
+}
+
+# Compute configuration
+variable "admin_username" {
+  description = "Administrator username for VMs"
+  type        = string
+  default     = "azureuser"
+}
+
+variable "backend_vm_size" {
+  description = "Size of the backend VM"
+  type        = string
+  default     = "Standard_D2s_v5"
+}
+
+variable "llm_vm_size" {
+  description = "Size of the LLM VM"
+  type        = string
+  default     = "Standard_E4ds_v4"
+}
+
+variable "elasticsearch_vm_size" {
+  description = "Size of the Elasticsearch VM"
+  type        = string
+  default     = "Standard_D2s_v5"
+}
+
+variable "backend_storage_account_type" {
+  description = "Storage account type for backend VM"
+  type        = string
+  default     = "StandardSSD_LRS"
+}
+
+variable "llm_storage_account_type" {
+  description = "Storage account type for LLM VM"
+  type        = string
+  default     = "Premium_LRS"
+}
+
+variable "elasticsearch_storage_account_type" {
+  description = "Storage account type for Elasticsearch VM"
+  type        = string
+  default     = "Premium_LRS"
+}
+
+# Database configuration
+variable "server_name" {
+  description = "Name of the SQL Server"
+  type        = string
+  default     = "artemia-server"
+}
+
+variable "database_name" {
+  description = "Name of the SQL Database"
+  type        = string
+  default     = "artemia-database"
+}
+
+variable "server_version" {
+  description = "Version of the SQL Server"
+  type        = string
+  default     = "12.0"
+}
+
+variable "storage_account_type" {
+  description = "Storage account type for the database"
+  type        = string
+  default     = "Local"
+}
+
+variable "azuread_authentication_only" {
+  description = "Whether to use Azure AD authentication only"
+  type        = bool
+  default     = false
+}
+
+variable "azuread_admin_login_username" {
+  description = "Azure AD admin login username"
+  type        = string
+  default     = "artemia-group"
+}
+
+variable "azuread_admin_object_id" {
+  description = "Azure AD admin object ID"
+  type        = string
+  default     = "d671c231-b875-4048-92f7-39ea71f488c6"
+}
+
+# Storage configuration
+variable "main_storage_account_name" {
+  description = "Name of the main data storage account"
+  type        = string
+  default     = "artemiadata"
+}
+
+variable "state_storage_account_name" {
+  description = "Name of the Terraform state storage account"
+  type        = string
+  default     = "artemiastatestore"
+}
+
+variable "account_tier" {
+  description = "Storage account tier"
+  type        = string
+  default     = "Standard"
+}
+
+variable "account_replication_type" {
+  description = "Storage account replication type"
+  type        = string
+  default     = "LRS"
+}
+
+variable "allow_nested_items_to_be_public" {
+  description = "Allow nested items to be public in storage account"
+  type        = bool
+  default     = false
+}
+
+variable "min_tls_version" {
+  description = "Minimum TLS version for storage account"
+  type        = string
+  default     = "TLS1_2"
+}
+
+# Messaging configuration
+variable "namespace_name" {
+  description = "Name of the EventHub namespace"
+  type        = string
+  default     = "artemia-event-hubs-kafka"
+}
+
+variable "namespace_sku" {
+  description = "SKU for the EventHub namespace"
+  type        = string
+  default     = "Standard"
+}
+
+variable "local_authentication_enabled" {
+  description = "Whether local authentication is enabled for EventHub"
+  type        = bool
+  default     = false
+}
+
+variable "eventhub_name" {
+  description = "Name of the EventHub"
+  type        = string
+  default     = "artemia-events"
+}
+
+variable "message_retention" {
+  description = "Message retention in days for EventHub"
+  type        = number
+  default     = 1
+}
+
+variable "partition_count" {
+  description = "Number of partitions for EventHub"
+  type        = number
+  default     = 1
+}
+
+variable "auth_rule_name" {
+  description = "Name of the EventHub authorization rule"
+  type        = string
+  default     = "RootManageSharedAccessKey"
+}
+
+variable "auth_rule_listen" {
+  description = "Whether the auth rule has listen permissions"
+  type        = bool
+  default     = true
+}
+
+variable "auth_rule_manage" {
+  description = "Whether the auth rule has manage permissions"
+  type        = bool
+  default     = true
+}
+
+variable "auth_rule_send" {
+  description = "Whether the auth rule has send permissions"
+  type        = bool
+  default     = true
+}
+
+# AI/ML configuration
+variable "cognitive_account_name" {
+  description = "Name of the cognitive services account"
+  type        = string
+  default     = "artemia-openai"
+}
+
+variable "custom_subdomain_name" {
+  description = "Custom subdomain name for cognitive services"
+  type        = string
+  default     = "artemia-openai"
+}
+
+variable "cognitive_kind" {
+  description = "Kind of cognitive services account"
+  type        = string
+  default     = "OpenAI"
+}
+
+variable "cognitive_sku_name" {
+  description = "SKU name for cognitive services"
+  type        = string
+  default     = "S0"
+}
+
+variable "network_acls_default_action" {
+  description = "Default action for network ACLs"
+  type        = string
+  default     = "Allow"
+}
+
+# Monitoring configuration
+variable "primary_action_group_name" {
+  description = "Name of the primary action group"
+  type        = string
+  default     = "artemia-ag"
+}
+
+variable "recommended_action_group_name" {
+  description = "Name of the recommended action group"
+  type        = string
+  default     = "RecommendedAlertRules-AG-1"
+}
+
+variable "primary_short_name" {
+  description = "Short name for primary action group"
+  type        = string
+  default     = "Artemia AG"
+}
+
+variable "recommended_short_name" {
+  description = "Short name for recommended action group"
+  type        = string
+  default     = "recalert1"
+}
+
+variable "cpu_threshold" {
+  description = "CPU threshold for monitoring alerts"
+  type        = number
+  default     = 80
+}
+
+variable "memory_threshold" {
+  description = "Memory threshold for monitoring alerts (in bytes)"
+  type        = number
+  default     = 1000000000
+}
+
+variable "disk_iops_threshold" {
+  description = "Disk IOPS threshold for monitoring alerts"
+  type        = number
+  default     = 95
+}
+
+variable "network_in_threshold" {
+  description = "Network in threshold for monitoring alerts (in bytes)"
+  type        = number
+  default     = 500000000000
+}
+
+variable "network_out_threshold" {
+  description = "Network out threshold for monitoring alerts (in bytes)"
+  type        = number
+  default     = 200000000000
+}

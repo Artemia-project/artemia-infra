@@ -65,7 +65,7 @@ output "sql_server_fqdn" {
 output "main_storage_account_name" {
   description = "Name of the main data storage account"
   value       = module.storage.main_storage_account_name
-}  
+}
 
 output "state_storage_account_name" {
   description = "Name of the Terraform state storage account"
