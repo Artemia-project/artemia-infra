@@ -98,8 +98,8 @@ variable "allowed_ip_ranges" {
   validation {
     condition = alltrue([
       for ip_range in var.allowed_ip_ranges :
-      can(regex("^([0-9]{1,3}\\.){{3}}[0-9]{1,3}$", ip_range.start_ip_address)) &&
-      can(regex("^([0-9]{1,3}\\.){{3}}[0-9]{1,3}$", ip_range.end_ip_address))
+      can(regex("^([0-9]{1,3}\\.){3}[0-9]{1,3}$", ip_range.start_ip_address)) &&
+      can(regex("^([0-9]{1,3}\\.){3}[0-9]{1,3}$", ip_range.end_ip_address))
     ])
     error_message = "IP addresses must be in valid IPv4 format (e.g., '192.168.1.1')."
   }
