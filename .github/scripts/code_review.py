@@ -6,7 +6,7 @@ import json
 import textwrap
 from typing import Dict, Any
 
-GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent"
+GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
 
 def get_pr_diff(pr_number: str) -> str:
     """Fetches the diff of a given pull request number from GitHub."""
