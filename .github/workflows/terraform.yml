@@ -12,6 +12,7 @@ on:
 
 env:
   ARM_CLIENT_ID: "${{ secrets.AZURE_CLIENT_ID }}"
+  ARM_CLIENT_SECRET: "${{ secrets.AZURE_CLIENT_SECRET }}"
   ARM_SUBSCRIPTION_ID: "${{ secrets.AZURE_SUBSCRIPTION_ID }}"
   ARM_TENANT_ID: "${{ secrets.AZURE_TENANT_ID }}"
   ARM_ACCESS_KEY: "${{ secrets.ARM_ACCESS_KEY }}"
@@ -54,6 +55,10 @@ jobs:
 
       - name: Terraform Validate
         run: terraform validate
+
+      - name: Create terraform.tfvars
+        run: |
+          echo "${{ secrets.PROD_TERRAFORM_TFVARS }}" > terraform.tfvars
 
       - name: Terraform Plan
         id: tf-plan
@@ -132,6 +137,13 @@ jobs:
     environment: production
     needs: [terraform]
     
+    env:
+      ARM_CLIENT_ID: "${{ secrets.AZURE_CLIENT_ID }}"
+      ARM_CLIENT_SECRET: "${{ secrets.AZURE_CLIENT_SECRET }}"
+      ARM_SUBSCRIPTION_ID: "${{ secrets.AZURE_SUBSCRIPTION_ID }}"
+      ARM_TENANT_ID: "${{ secrets.AZURE_TENANT_ID }}"
+      ARM_ACCESS_KEY: "${{ secrets.ARM_ACCESS_KEY }}"
+    
     defaults:
       run:
         working-directory: environments/prod
@@ -145,6 +157,10 @@ jobs:
 
     - name: Terraform Init
       run: terraform init
+
+    - name: Create terraform.tfvars
+      run: |
+        echo "${{ secrets.PROD_TERRAFORM_TFVARS }}" > terraform.tfvars
 
     - name: Download Terraform Plan
       uses: actions/download-artifact@v4
