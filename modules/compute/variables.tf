@@ -28,8 +28,8 @@ variable "backend_nsg_id" {
   type        = string
 }
 
-variable "llm_nsg_id" {
-  description = "ID of the LLM NSG"
+variable "data_nsg_id" {
+  description = "ID of the Data NSG"
   type        = string
 }
 
@@ -49,8 +49,8 @@ variable "ssh_public_key_backend" {
   type        = string
 }
 
-variable "ssh_public_key_llm" {
-  description = "SSH public key for LLM VM"
+variable "ssh_public_key_data" {
+  description = "SSH public key for Data VM"
   type        = string
 }
 
@@ -65,8 +65,8 @@ variable "backend_vm_size" {
   default     = "Standard_D2s_v5"
 }
 
-variable "llm_vm_size" {
-  description = "Size of the LLM VM"
+variable "data_vm_size" {
+  description = "Size of the Data VM"
   type        = string
   default     = "Standard_E4ds_v4"
 }
@@ -83,8 +83,8 @@ variable "backend_storage_account_type" {
   default     = "StandardSSD_LRS"
 }
 
-variable "llm_storage_account_type" {
-  description = "Storage account type for LLM VM"
+variable "data_storage_account_type" {
+  description = "Storage account type for Data VM"
   type        = string
   default     = "Premium_LRS"
 }

@@ -66,8 +66,8 @@ variable "backend_vm_id" {
   type        = string
 }
 
-variable "llm_vm_id" {
-  description = "ID of the LLM VM"
+variable "data_vm_id" {
+  description = "ID of the Data VM"
   type        = string
 }
 

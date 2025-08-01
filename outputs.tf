@@ -20,9 +20,9 @@ output "backend_vm_id" {
   value       = module.compute.backend_vm_id
 }
 
-output "llm_vm_id" {
-  description = "ID of the LLM VM"
-  value       = module.compute.llm_vm_id
+output "data_vm_id" {
+  description = "ID of the Data VM"
+  value       = module.compute.data_vm_id
 }
 
 output "elasticsearch_vm_id" {
@@ -35,9 +35,9 @@ output "backend_public_ip" {
   value       = module.compute.backend_public_ip
 }
 
-output "llm_public_ip" {
-  description = "Public IP address of the LLM VM"
-  value       = module.compute.llm_public_ip
+output "data_public_ip" {
+  description = "Public IP address of the Data VM"
+  value       = module.compute.data_public_ip
 }
 
 output "elasticsearch_public_ip" {

@@ -3,9 +3,9 @@ output "backend_shutdown_schedule_id" {
   value       = var.enable_auto_shutdown ? azurerm_dev_test_global_vm_shutdown_schedule.backend[0].id : null
 }
 
-output "llm_shutdown_schedule_id" {
-  description = "ID of the LLM VM shutdown schedule"
-  value       = var.enable_auto_shutdown ? azurerm_dev_test_global_vm_shutdown_schedule.llm[0].id : null
+output "data_shutdown_schedule_id" {
+  description = "ID of the Data VM shutdown schedule"
+  value       = var.enable_auto_shutdown ? azurerm_dev_test_global_vm_shutdown_schedule.data[0].id : null
 }
 
 output "elasticsearch_shutdown_schedule_id" {

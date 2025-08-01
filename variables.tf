@@ -44,8 +44,8 @@ variable "ssh_public_key_backend" {
   sensitive   = true
 }
 
-variable "ssh_public_key_llm" {
-  description = "SSH public key for LLM VM"
+variable "ssh_public_key_data" {
+  description = "SSH public key for Data VM"
   type        = string
   sensitive   = true
 }

@@ -53,9 +53,9 @@ resource "azurerm_network_security_group" "backend" {
   tags                = var.tags
 }
 
-resource "azurerm_network_security_group" "llm" {
+resource "azurerm_network_security_group" "data" {
   location            = var.location
-  name                = "${var.project_name}-llm-vm-nsg"
+  name                = "${var.project_name}-data-vm-nsg"
   resource_group_name = var.resource_group_name
   tags                = var.tags
 }
@@ -132,16 +132,16 @@ resource "azurerm_network_security_rule" "backend_rdp" {
   source_port_range           = "*"
 }
 
-# NSG Rules for LLM VM
+# NSG Rules for Data VM
 # HTTP Access - Configurable source IP ranges
-resource "azurerm_network_security_rule" "llm_http" {
+resource "azurerm_network_security_rule" "data_http" {
   count                       = length(var.allowed_ip_ranges)
   access                      = "Allow"
   destination_address_prefix  = "*"
   destination_port_range      = "80"
   direction                   = "Inbound"
   name                        = "HTTP-${count.index + 1}"
-  network_security_group_name = azurerm_network_security_group.llm.name
+  network_security_group_name = azurerm_network_security_group.data.name
   priority                    = 300 + count.index
   protocol                    = "Tcp"
   resource_group_name         = var.resource_group_name
@@ -150,14 +150,14 @@ resource "azurerm_network_security_rule" "llm_http" {
 }
 
 # HTTPS Access - Configurable source IP ranges
-resource "azurerm_network_security_rule" "llm_https" {
+resource "azurerm_network_security_rule" "data_https" {
   count                       = length(var.allowed_ip_ranges)
   access                      = "Allow"
   destination_address_prefix  = "*"
   destination_port_range      = "443"
   direction                   = "Inbound"
   name                        = "HTTPS-${count.index + 1}"
-  network_security_group_name = azurerm_network_security_group.llm.name
+  network_security_group_name = azurerm_network_security_group.data.name
   priority                    = 320 + count.index
   protocol                    = "Tcp"
   resource_group_name         = var.resource_group_name
@@ -166,14 +166,14 @@ resource "azurerm_network_security_rule" "llm_https" {
 }
 
 # SSH Access - More restrictive IP ranges
-resource "azurerm_network_security_rule" "llm_ssh" {
+resource "azurerm_network_security_rule" "data_ssh" {
   count                       = length(var.ssh_allowed_ip_ranges)
   access                      = "Allow"
   destination_address_prefix  = "*"
   destination_port_range      = "22"
   direction                   = "Inbound"
   name                        = "SSH-${count.index + 1}"
-  network_security_group_name = azurerm_network_security_group.llm.name
+  network_security_group_name = azurerm_network_security_group.data.name
   priority                    = 340 + count.index
   protocol                    = "Tcp"
   resource_group_name         = var.resource_group_name
@@ -182,14 +182,14 @@ resource "azurerm_network_security_rule" "llm_ssh" {
 }
 
 # RDP Access - Only if explicitly enabled
-resource "azurerm_network_security_rule" "llm_rdp" {
+resource "azurerm_network_security_rule" "data_rdp" {
   count                       = var.enable_rdp_access ? length(var.ssh_allowed_ip_ranges) : 0
   access                      = "Allow"
   destination_address_prefix  = "*"
   destination_port_range      = "3389"
   direction                   = "Inbound"
   name                        = "RDP-${count.index + 1}"
-  network_security_group_name = azurerm_network_security_group.llm.name
+  network_security_group_name = azurerm_network_security_group.data.name
   priority                    = 360 + count.index
   protocol                    = "Tcp"
   resource_group_name         = var.resource_group_name

@@ -32,20 +32,20 @@ module "compute" {
   subnet_id                      = module.network.default_subnet_id
   backend_pool_id                = module.network.backend_pool_id
   backend_nsg_id                 = module.network.backend_nsg_id
-  llm_nsg_id                     = module.network.llm_nsg_id
+  data_nsg_id                     = module.network.data_nsg_id
   elasticsearch_nsg_id           = module.network.elasticsearch_nsg_id
   
   admin_username                      = "azureuser"
   ssh_public_key_backend             = var.ssh_public_key_backend
-  ssh_public_key_llm                 = var.ssh_public_key_llm
+  ssh_public_key_data                 = var.ssh_public_key_data
   ssh_public_key_elasticsearch       = var.ssh_public_key_elasticsearch
   
   backend_vm_size                    = "Standard_D2s_v5"
-  llm_vm_size                       = "Standard_E4ds_v4"
+  data_vm_size                       = "Standard_D2s_v5"
   elasticsearch_vm_size             = "Standard_D2s_v5"
   
   backend_storage_account_type       = "StandardSSD_LRS"
-  llm_storage_account_type          = "Premium_LRS"
+  data_storage_account_type          = "Premium_LRS"
   elasticsearch_storage_account_type = "Premium_LRS"
   
   tags = local.tags
@@ -143,7 +143,7 @@ module "monitoring" {
   
   vm_ids = {
     "artemia-backend-vm"      = module.compute.backend_vm_id
-    "artemia-llm-vm"          = module.compute.llm_vm_id
+    "artemia-data-vm"          = module.compute.data_vm_id
     "artemia-elasticsearch-vm" = module.compute.elasticsearch_vm_id
   }
   
