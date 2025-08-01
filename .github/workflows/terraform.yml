@@ -58,7 +58,7 @@ jobs:
 
       - name: Create terraform.tfvars
         run: |
-          echo "${{ secrets.PROD_TERRAFORM_TFVARS }}" > terraform.tfvars
+          echo "${{ secrets.PROD_TERRAFORM_TFVARS }}" | base64 -d > terraform.tfvars
 
       - name: Terraform Plan
         id: tf-plan
