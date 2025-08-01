@@ -51,7 +51,7 @@ variable "tags" {
 variable "allowed_ip_ranges" {
   description = "List of IP ranges allowed to access VMs (CIDR notation)"
   type        = list(string)
-  default     = ["0.0.0.0/0"]  # Default allows all - CHANGE FOR PRODUCTION
+  default     = ["0.0.0.0/0"] # Default allows all - CHANGE FOR PRODUCTION
   validation {
     condition = alltrue([
       for cidr in var.allowed_ip_ranges : can(cidrhost(cidr, 0))
@@ -69,7 +69,7 @@ variable "enable_rdp_access" {
 variable "ssh_allowed_ip_ranges" {
   description = "Specific IP ranges allowed for SSH access (more restrictive than general access)"
   type        = list(string)
-  default     = ["0.0.0.0/0"]  # Default allows all - CHANGE FOR PRODUCTION
+  default     = ["0.0.0.0/0"] # Default allows all - CHANGE FOR PRODUCTION
   validation {
     condition = alltrue([
       for cidr in var.ssh_allowed_ip_ranges : can(cidrhost(cidr, 0))
@@ -83,7 +83,7 @@ variable "environment" {
   type        = string
   default     = "prod"
   validation {
-    condition = contains(["dev", "stg", "prod"], var.environment)
+    condition     = contains(["dev", "stg", "prod"], var.environment)
     error_message = "Environment must be one of: dev, stg, prod."
   }
 }

@@ -14,7 +14,7 @@ variable "primary_email" {
 }
 
 variable "secondary_email" {
-  description = "Secondary email address for notifications"  
+  description = "Secondary email address for notifications"
   type        = string
   sensitive   = true
 }

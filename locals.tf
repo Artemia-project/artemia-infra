@@ -4,7 +4,7 @@ locals {
     Environment = "prod"
     Project     = "artemia"
   }
-  
-  location = "koreacentral"
+
+  location            = "koreacentral"
   resource_group_name = "artemia-rg"
 }

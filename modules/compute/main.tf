@@ -54,7 +54,7 @@ resource "azurerm_network_interface" "backend" {
   location                       = var.location
   name                           = "${var.project_name}-backend-vm-nic"
   resource_group_name            = var.resource_group_name
-  tags                          = var.tags
+  tags                           = var.tags
 
   ip_configuration {
     name                          = "ipconfig1"
@@ -69,7 +69,7 @@ resource "azurerm_network_interface" "data" {
   location                       = var.location
   name                           = "${var.project_name}-data-vm-nic"
   resource_group_name            = var.resource_group_name
-  tags                          = var.tags
+  tags                           = var.tags
 
   ip_configuration {
     name                          = "ipconfig1"
@@ -84,7 +84,7 @@ resource "azurerm_network_interface" "elasticsearch" {
   location                       = var.location
   name                           = "${var.project_name}-elasticsearch-vm-nic"
   resource_group_name            = var.resource_group_name
-  tags                          = var.tags
+  tags                           = var.tags
 
   ip_configuration {
     name                          = "ipconfig1"
