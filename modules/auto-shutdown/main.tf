@@ -20,10 +20,10 @@ resource "azurerm_dev_test_global_vm_shutdown_schedule" "backend" {
   tags = var.tags
 }
 
-# Auto-shutdown schedule for LLM VM
-resource "azurerm_dev_test_global_vm_shutdown_schedule" "llm" {
+# Auto-shutdown schedule for Data VM
+resource "azurerm_dev_test_global_vm_shutdown_schedule" "data" {
   count              = var.enable_auto_shutdown ? 1 : 0
-  virtual_machine_id = var.llm_vm_id
+  virtual_machine_id = var.data_vm_id
   location           = var.location
   enabled            = true
 

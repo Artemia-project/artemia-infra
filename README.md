@@ -146,7 +146,7 @@ terraform plan -var-file="../../environments/prod/terraform.tfvars"
 
 ### 인프라 구성요소
 - **Resource Group**: `artemia-rg` (Korea Central)
-- **Virtual Machines**: Backend, LLM, Elasticsearch
+- **Virtual Machines**: Backend, Data, Elasticsearch
 - **Networking**: VNet, Subnet, NSG, Load Balancer
 - **Database**: Azure SQL Server with Azure AD 인증
 - **Storage**: Terraform 상태 저장소 및 데이터 저장소
@@ -156,7 +156,7 @@ terraform plan -var-file="../../environments/prod/terraform.tfvars"
 
 ### 모듈별 역할
 - **network**: 네트워크 인프라 (VNet, Subnet, NSG, Load Balancer)
-- **compute**: 가상머신 리소스 (Backend, LLM, Elasticsearch)
+- **compute**: 가상머신 리소스 (Backend, Data, Elasticsearch)
 - **database**: Azure SQL Server 및 Database
 - **storage**: Storage Account 리소스
 - **messaging**: EventHub 및 관련 리소스

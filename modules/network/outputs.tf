@@ -33,9 +33,9 @@ output "backend_nsg_id" {
   value       = azurerm_network_security_group.backend.id
 }
 
-output "llm_nsg_id" {
-  description = "ID of the LLM NSG"
-  value       = azurerm_network_security_group.llm.id
+output "data_nsg_id" {
+  description = "ID of the Data NSG"
+  value       = azurerm_network_security_group.data.id
 }
 
 output "elasticsearch_nsg_id" {

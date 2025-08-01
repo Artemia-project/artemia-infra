@@ -12,7 +12,7 @@ modules/
 │   ├── main.tf
 │   ├── variables.tf
 │   └── outputs.tf
-├── compute/           # 가상 머신 리소스 (Backend, LLM, Elasticsearch)
+├── compute/           # 가상 머신 리소스 (Backend, Data, Elasticsearch)
 │   ├── main.tf
 │   ├── variables.tf
 │   └── outputs.tf
@@ -54,7 +54,7 @@ modules/
 ### Compute 모듈 (`modules/compute/`)
 - **목적**: 가상 머신 및 관련 컴퓨팅 리소스 관리
 - **리소스**:
-  - Linux 가상 머신 (Backend, LLM, Elasticsearch)
+  - Linux 가상 머신 (Backend, Data, Elasticsearch)
   - SSH 공개 키
   - 네트워크 인터페이스 및 공용 IP
   - 로드 밸런서 연결

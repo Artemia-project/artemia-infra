@@ -7,10 +7,10 @@ resource "azurerm_ssh_public_key" "backend" {
   tags                = var.tags
 }
 
-resource "azurerm_ssh_public_key" "llm" {
+resource "azurerm_ssh_public_key" "data" {
   location            = var.location
-  name                = "${var.project_name}-llm-vm-keypair"
-  public_key          = var.ssh_public_key_llm
+  name                = "${var.project_name}-data-vm-keypair"
+  public_key          = var.ssh_public_key_data
   resource_group_name = var.resource_group_name
   tags                = var.tags
 }
@@ -32,10 +32,10 @@ resource "azurerm_public_ip" "backend" {
   tags                = var.tags
 }
 
-resource "azurerm_public_ip" "llm" {
+resource "azurerm_public_ip" "data" {
   allocation_method   = "Static"
   location            = var.location
-  name                = "${var.project_name}-llm-vm-ip"
+  name                = "${var.project_name}-data-vm-ip"
   resource_group_name = var.resource_group_name
   tags                = var.tags
 }
@@ -64,17 +64,17 @@ resource "azurerm_network_interface" "backend" {
   }
 }
 
-resource "azurerm_network_interface" "llm" {
+resource "azurerm_network_interface" "data" {
   accelerated_networking_enabled = true
   location                       = var.location
-  name                           = "${var.project_name}-llm-vm-nic"
+  name                           = "${var.project_name}-data-vm-nic"
   resource_group_name            = var.resource_group_name
   tags                          = var.tags
 
   ip_configuration {
     name                          = "ipconfig1"
     private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = azurerm_public_ip.llm.id
+    public_ip_address_id          = azurerm_public_ip.data.id
     subnet_id                     = var.subnet_id
   }
 }
@@ -101,10 +101,10 @@ resource "azurerm_network_interface_backend_address_pool_association" "backend" 
   network_interface_id    = azurerm_network_interface.backend.id
 }
 
-resource "azurerm_network_interface_backend_address_pool_association" "llm" {
+resource "azurerm_network_interface_backend_address_pool_association" "data" {
   backend_address_pool_id = var.backend_pool_id
   ip_configuration_name   = "ipconfig1"
-  network_interface_id    = azurerm_network_interface.llm.id
+  network_interface_id    = azurerm_network_interface.data.id
 }
 
 # Network Interface to NSG Associations
@@ -113,9 +113,9 @@ resource "azurerm_network_interface_security_group_association" "backend" {
   network_security_group_id = var.backend_nsg_id
 }
 
-resource "azurerm_network_interface_security_group_association" "llm" {
-  network_interface_id      = azurerm_network_interface.llm.id
-  network_security_group_id = var.llm_nsg_id
+resource "azurerm_network_interface_security_group_association" "data" {
+  network_interface_id      = azurerm_network_interface.data.id
+  network_security_group_id = var.data_nsg_id
 }
 
 resource "azurerm_network_interface_security_group_association" "elasticsearch" {
@@ -156,14 +156,14 @@ resource "azurerm_linux_virtual_machine" "backend" {
   }
 }
 
-resource "azurerm_linux_virtual_machine" "llm" {
+resource "azurerm_linux_virtual_machine" "data" {
   admin_username        = var.admin_username
   location              = var.location
-  name                  = "${var.project_name}-llm-vm"
-  network_interface_ids = [azurerm_network_interface.llm.id]
+  name                  = "${var.project_name}-data-vm"
+  network_interface_ids = [azurerm_network_interface.data.id]
   resource_group_name   = var.resource_group_name
   secure_boot_enabled   = true
-  size                  = var.llm_vm_size
+  size                  = var.data_vm_size
   tags                  = var.tags
   vtpm_enabled          = true
 
@@ -171,13 +171,13 @@ resource "azurerm_linux_virtual_machine" "llm" {
   }
 
   admin_ssh_key {
-    public_key = var.ssh_public_key_llm
+    public_key = var.ssh_public_key_data
     username   = var.admin_username
   }
 
   os_disk {
     caching              = "ReadWrite"
-    storage_account_type = var.llm_storage_account_type
+    storage_account_type = var.data_storage_account_type
   }
 
   source_image_reference {

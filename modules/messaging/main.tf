@@ -34,16 +34,16 @@ resource "azurerm_eventhub_consumer_group" "default" {
   resource_group_name = var.resource_group_name
 }
 
-resource "azurerm_eventhub_consumer_group" "llm_admin" {
+resource "azurerm_eventhub_consumer_group" "data_admin" {
   eventhub_name       = azurerm_eventhub.main.name
-  name                = "llm.admin"
+  name                = "data.admin"
   namespace_name      = azurerm_eventhub_namespace.main.name
   resource_group_name = var.resource_group_name
 }
 
-resource "azurerm_eventhub_consumer_group" "llm_user" {
+resource "azurerm_eventhub_consumer_group" "data_user" {
   eventhub_name       = azurerm_eventhub.main.name
-  name                = "llm.user"
+  name                = "data.user"
   namespace_name      = azurerm_eventhub_namespace.main.name
   resource_group_name = var.resource_group_name
 }

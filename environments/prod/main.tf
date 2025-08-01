@@ -39,20 +39,20 @@ module "compute" {
   subnet_id            = module.network.default_subnet_id
   backend_pool_id      = module.network.backend_pool_id
   backend_nsg_id       = module.network.backend_nsg_id
-  llm_nsg_id           = module.network.llm_nsg_id
+  data_nsg_id           = module.network.data_nsg_id
   elasticsearch_nsg_id = module.network.elasticsearch_nsg_id
 
   admin_username               = var.admin_username
   ssh_public_key_backend       = var.ssh_public_key_backend
-  ssh_public_key_llm           = var.ssh_public_key_llm
+  ssh_public_key_data           = var.ssh_public_key_data
   ssh_public_key_elasticsearch = var.ssh_public_key_elasticsearch
 
   backend_vm_size       = var.backend_vm_size
-  llm_vm_size           = var.llm_vm_size
+  data_vm_size           = var.data_vm_size
   elasticsearch_vm_size = var.elasticsearch_vm_size
 
   backend_storage_account_type       = var.backend_storage_account_type
-  llm_storage_account_type           = var.llm_storage_account_type
+  data_storage_account_type           = var.data_storage_account_type
   elasticsearch_storage_account_type = var.elasticsearch_storage_account_type
 
   tags = local.tags
@@ -159,7 +159,7 @@ module "monitoring" {
 
   vm_ids = {
     "artemia-backend-vm"       = module.compute.backend_vm_id
-    "artemia-llm-vm"           = module.compute.llm_vm_id
+    "artemia-data-vm"           = module.compute.data_vm_id
     "artemia-elasticsearch-vm" = module.compute.elasticsearch_vm_id
   }
 
@@ -191,7 +191,7 @@ module "auto_shutdown" {
   resource_group_name = azurerm_resource_group.main.name
 
   backend_vm_id       = module.compute.backend_vm_id
-  llm_vm_id          = module.compute.llm_vm_id
+  data_vm_id          = module.compute.data_vm_id
   elasticsearch_vm_id = module.compute.elasticsearch_vm_id
 
   tags = local.tags
