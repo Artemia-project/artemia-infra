@@ -1,6 +1,12 @@
 # Variables for sensitive data
 # Create a terraform.tfvars file to set these values (don't commit it to git)
 
+variable "use_azure_cli" {
+  description = "Use Azure CLI for authentication (true for local, false for CI/CD)"
+  type        = bool
+  default     = true
+}
+
 variable "subscription_id" {
   description = "Azure subscription ID"
   type        = string
