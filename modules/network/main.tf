@@ -207,7 +207,7 @@ resource "azurerm_network_security_rule" "elasticsearch_http" {
   direction                   = "Inbound"
   name                        = "HTTP-${count.index + 1}"
   network_security_group_name = azurerm_network_security_group.elasticsearch.name
-  priority                    = 300 + count.index
+  priority                    = 310 + count.index
   protocol                    = "Tcp"
   resource_group_name         = var.resource_group_name
   source_address_prefix       = var.allowed_ip_ranges[count.index]
@@ -223,7 +223,7 @@ resource "azurerm_network_security_rule" "elasticsearch_https" {
   direction                   = "Inbound"
   name                        = "HTTPS-${count.index + 1}"
   network_security_group_name = azurerm_network_security_group.elasticsearch.name
-  priority                    = 320 + count.index
+  priority                    = 330 + count.index
   protocol                    = "Tcp"
   resource_group_name         = var.resource_group_name
   source_address_prefix       = var.allowed_ip_ranges[count.index]
@@ -239,7 +239,7 @@ resource "azurerm_network_security_rule" "elasticsearch_ssh" {
   direction                   = "Inbound"
   name                        = "SSH-${count.index + 1}"
   network_security_group_name = azurerm_network_security_group.elasticsearch.name
-  priority                    = 340 + count.index
+  priority                    = 350 + count.index
   protocol                    = "Tcp"
   resource_group_name         = var.resource_group_name
   source_address_prefix       = var.ssh_allowed_ip_ranges[count.index]
