@@ -5,7 +5,7 @@ resource "azurerm_resource_group" "main" {
   tags     = local.tags
 }
 
-# Network Module
+# Network Module with Enhanced Security
 module "network" {
   source = "../../modules/network"
 
@@ -17,6 +17,13 @@ module "network" {
   default_subnet_address_prefixes  = var.default_subnet_address_prefixes
   firewall_subnet_address_prefixes = var.firewall_subnet_address_prefixes
   load_balancer_name               = var.load_balancer_name
+  
+  # Security Configuration
+  allowed_ip_ranges                = var.allowed_ip_ranges
+  ssh_allowed_ip_ranges           = var.ssh_allowed_ip_ranges
+  enable_rdp_access               = var.enable_rdp_access
+  environment                     = "prod"
+  
   tags                             = local.tags
 
   depends_on = [azurerm_resource_group.main]
@@ -53,7 +60,7 @@ module "compute" {
   depends_on = [module.network]
 }
 
-# Database Module
+# Database Module with Enhanced Security
 module "database" {
   source = "../../modules/database"
 
@@ -71,6 +78,14 @@ module "database" {
   azuread_admin_object_id      = var.azuread_admin_object_id
   subnet_id                    = module.network.default_subnet_id
   sku_name                     = var.sku_name
+  
+  # Enhanced Security Configuration
+  enable_public_access         = var.enable_database_public_access
+  allowed_ip_ranges            = var.database_allowed_ips
+  enable_auditing              = false
+  audit_storage_account_id     = null
+  minimum_tls_version          = "1.2"
+  
   tags                         = local.tags
 
   depends_on = [azurerm_resource_group.main, module.network]
@@ -156,4 +171,30 @@ module "monitoring" {
   tags                  = local.tags
 
   depends_on = [azurerm_resource_group.main, module.compute]
+}
+
+# Auto-shutdown Module for Cost Optimization
+module "auto_shutdown" {
+  source = "../../modules/auto-shutdown"
+
+  enable_auto_shutdown         = var.enable_auto_shutdown
+  auto_shutdown_time          = var.auto_shutdown_time
+  auto_shutdown_timezone      = var.auto_shutdown_timezone
+  auto_start_enabled          = var.auto_start_enabled
+  auto_start_time            = var.auto_start_time
+  weekend_shutdown_enabled    = var.weekend_shutdown_enabled
+  enable_advanced_scheduling  = var.enable_cost_optimization
+  notification_email          = var.notification_email_shutdown != "" ? var.notification_email_shutdown : var.primary_email
+
+  project_name        = var.project_name
+  location           = local.location
+  resource_group_name = azurerm_resource_group.main.name
+
+  backend_vm_id       = module.compute.backend_vm_id
+  llm_vm_id          = module.compute.llm_vm_id
+  elasticsearch_vm_id = module.compute.elasticsearch_vm_id
+
+  tags = local.tags
+
+  depends_on = [module.compute]
 }

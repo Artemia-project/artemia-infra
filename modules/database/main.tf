@@ -1,4 +1,4 @@
-# SQL Server
+# SQL Server with Enhanced Security
 resource "azurerm_mssql_server" "main" {
   administrator_login          = var.administrator_login
   administrator_login_password = var.administrator_login_password
@@ -6,6 +6,8 @@ resource "azurerm_mssql_server" "main" {
   name                         = var.server_name
   resource_group_name          = var.resource_group_name
   version                      = var.server_version
+  minimum_tls_version          = var.minimum_tls_version
+  public_network_access_enabled = var.enable_public_access
   tags                         = var.tags
 
   azuread_administrator {
@@ -36,12 +38,13 @@ resource "azurerm_mssql_server_security_alert_policy" "main" {
   state               = "Enabled"
 }
 
-# Firewall Rules
-resource "azurerm_mssql_firewall_rule" "allow_all_ips" {
-  end_ip_address   = "255.255.255.255"
-  name             = "AllowAllIps"
+# Configurable Firewall Rules - Only created if public access is enabled
+resource "azurerm_mssql_firewall_rule" "allowed_ips" {
+  count            = var.enable_public_access ? length(var.allowed_ip_ranges) : 0
+  end_ip_address   = var.allowed_ip_ranges[count.index].end_ip_address
+  name             = var.allowed_ip_ranges[count.index].name
   server_id        = azurerm_mssql_server.main.id
-  start_ip_address = "0.0.0.0"
+  start_ip_address = var.allowed_ip_ranges[count.index].start_ip_address
 }
 
 resource "azurerm_mssql_firewall_rule" "allow_azure_services" {
@@ -58,22 +61,28 @@ resource "azurerm_mssql_virtual_network_rule" "main" {
   subnet_id = var.subnet_id
 }
 
-# Extended Auditing Policies
+# Enhanced Auditing Policies
 resource "azurerm_mssql_database_extended_auditing_policy" "main" {
-  database_id            = azurerm_mssql_database.main.id
-  enabled                = false
-  log_monitoring_enabled = false
+  database_id                         = azurerm_mssql_database.main.id
+  enabled                            = var.enable_auditing
+  log_monitoring_enabled             = var.enable_auditing
+  storage_endpoint                   = var.enable_auditing && var.audit_storage_account_id != null ? "${var.audit_storage_account_id}/" : null
+  storage_account_access_key_is_secondary = false
+  retention_in_days                  = var.enable_auditing ? 90 : null
 }
 
 resource "azurerm_mssql_server_extended_auditing_policy" "main" {
-  enabled                = false
-  log_monitoring_enabled = false
-  server_id              = azurerm_mssql_server.main.id
+  enabled                            = var.enable_auditing
+  log_monitoring_enabled             = var.enable_auditing
+  server_id                          = azurerm_mssql_server.main.id
+  storage_endpoint                   = var.enable_auditing && var.audit_storage_account_id != null ? "${var.audit_storage_account_id}/" : null
+  storage_account_access_key_is_secondary = false
+  retention_in_days                  = var.enable_auditing ? 90 : null
 }
 
-# Microsoft Support Auditing Policy
+# Microsoft Support Auditing Policy - Enhanced
 resource "azurerm_mssql_server_microsoft_support_auditing_policy" "main" {
-  enabled                = false
-  log_monitoring_enabled = false
+  enabled                = var.enable_auditing
+  log_monitoring_enabled = var.enable_auditing
   server_id              = azurerm_mssql_server.main.id
 }

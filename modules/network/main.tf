@@ -68,172 +68,211 @@ resource "azurerm_network_security_group" "elasticsearch" {
 }
 
 # NSG Rules for Backend VM
+# HTTP Access - Configurable source IP ranges
 resource "azurerm_network_security_rule" "backend_http" {
+  count                       = length(var.allowed_ip_ranges)
   access                      = "Allow"
   destination_address_prefix  = "*"
   destination_port_range      = "80"
   direction                   = "Inbound"
-  name                        = "HTTP"
+  name                        = "HTTP-${count.index + 1}"
   network_security_group_name = azurerm_network_security_group.backend.name
-  priority                    = 300
+  priority                    = 300 + count.index
   protocol                    = "Tcp"
   resource_group_name         = var.resource_group_name
-  source_address_prefix       = "*"
+  source_address_prefix       = var.allowed_ip_ranges[count.index]
   source_port_range           = "*"
 }
 
+# HTTPS Access - Configurable source IP ranges
 resource "azurerm_network_security_rule" "backend_https" {
+  count                       = length(var.allowed_ip_ranges)
   access                      = "Allow"
   destination_address_prefix  = "*"
   destination_port_range      = "443"
   direction                   = "Inbound"
-  name                        = "HTTPS"
+  name                        = "HTTPS-${count.index + 1}"
   network_security_group_name = azurerm_network_security_group.backend.name
-  priority                    = 320
+  priority                    = 320 + count.index
   protocol                    = "Tcp"
   resource_group_name         = var.resource_group_name
-  source_address_prefix       = "*"
+  source_address_prefix       = var.allowed_ip_ranges[count.index]
   source_port_range           = "*"
 }
 
+# SSH Access - More restrictive IP ranges
 resource "azurerm_network_security_rule" "backend_ssh" {
+  count                       = length(var.ssh_allowed_ip_ranges)
   access                      = "Allow"
   destination_address_prefix  = "*"
   destination_port_range      = "22"
   direction                   = "Inbound"
-  name                        = "SSH"
+  name                        = "SSH-${count.index + 1}"
   network_security_group_name = azurerm_network_security_group.backend.name
-  priority                    = 340
+  priority                    = 340 + count.index
   protocol                    = "Tcp"
   resource_group_name         = var.resource_group_name
-  source_address_prefix       = "*"
+  source_address_prefix       = var.ssh_allowed_ip_ranges[count.index]
   source_port_range           = "*"
 }
 
+# RDP Access - Only if explicitly enabled (typically disabled for Linux VMs)
 resource "azurerm_network_security_rule" "backend_rdp" {
+  count                       = var.enable_rdp_access ? length(var.ssh_allowed_ip_ranges) : 0
   access                      = "Allow"
   destination_address_prefix  = "*"
   destination_port_range      = "3389"
   direction                   = "Inbound"
-  name                        = "RDP"
+  name                        = "RDP-${count.index + 1}"
   network_security_group_name = azurerm_network_security_group.backend.name
-  priority                    = 360
+  priority                    = 360 + count.index
   protocol                    = "Tcp"
   resource_group_name         = var.resource_group_name
-  source_address_prefix       = "*"
+  source_address_prefix       = var.ssh_allowed_ip_ranges[count.index]
   source_port_range           = "*"
 }
 
 # NSG Rules for LLM VM
+# HTTP Access - Configurable source IP ranges
 resource "azurerm_network_security_rule" "llm_http" {
+  count                       = length(var.allowed_ip_ranges)
   access                      = "Allow"
   destination_address_prefix  = "*"
   destination_port_range      = "80"
   direction                   = "Inbound"
-  name                        = "HTTP"
+  name                        = "HTTP-${count.index + 1}"
   network_security_group_name = azurerm_network_security_group.llm.name
-  priority                    = 340
+  priority                    = 300 + count.index
   protocol                    = "Tcp"
   resource_group_name         = var.resource_group_name
-  source_address_prefix       = "*"
+  source_address_prefix       = var.allowed_ip_ranges[count.index]
   source_port_range           = "*"
 }
 
+# HTTPS Access - Configurable source IP ranges
 resource "azurerm_network_security_rule" "llm_https" {
+  count                       = length(var.allowed_ip_ranges)
   access                      = "Allow"
   destination_address_prefix  = "*"
   destination_port_range      = "443"
   direction                   = "Inbound"
-  name                        = "HTTPS"
+  name                        = "HTTPS-${count.index + 1}"
   network_security_group_name = azurerm_network_security_group.llm.name
-  priority                    = 320
+  priority                    = 320 + count.index
   protocol                    = "Tcp"
   resource_group_name         = var.resource_group_name
-  source_address_prefix       = "*"
+  source_address_prefix       = var.allowed_ip_ranges[count.index]
   source_port_range           = "*"
 }
 
+# SSH Access - More restrictive IP ranges
 resource "azurerm_network_security_rule" "llm_ssh" {
+  count                       = length(var.ssh_allowed_ip_ranges)
   access                      = "Allow"
   destination_address_prefix  = "*"
   destination_port_range      = "22"
   direction                   = "Inbound"
-  name                        = "SSH"
+  name                        = "SSH-${count.index + 1}"
   network_security_group_name = azurerm_network_security_group.llm.name
-  priority                    = 300
+  priority                    = 340 + count.index
   protocol                    = "Tcp"
   resource_group_name         = var.resource_group_name
-  source_address_prefix       = "*"
+  source_address_prefix       = var.ssh_allowed_ip_ranges[count.index]
   source_port_range           = "*"
 }
 
+# RDP Access - Only if explicitly enabled
 resource "azurerm_network_security_rule" "llm_rdp" {
+  count                       = var.enable_rdp_access ? length(var.ssh_allowed_ip_ranges) : 0
   access                      = "Allow"
   destination_address_prefix  = "*"
   destination_port_range      = "3389"
   direction                   = "Inbound"
-  name                        = "RDP"
+  name                        = "RDP-${count.index + 1}"
   network_security_group_name = azurerm_network_security_group.llm.name
-  priority                    = 360
+  priority                    = 360 + count.index
   protocol                    = "Tcp"
   resource_group_name         = var.resource_group_name
-  source_address_prefix       = "*"
+  source_address_prefix       = var.ssh_allowed_ip_ranges[count.index]
   source_port_range           = "*"
 }
 
 # NSG Rules for Elasticsearch VM
+# HTTP Access - Configurable source IP ranges (for Elasticsearch API)
 resource "azurerm_network_security_rule" "elasticsearch_http" {
+  count                       = length(var.allowed_ip_ranges)
   access                      = "Allow"
   destination_address_prefix  = "*"
   destination_port_range      = "80"
   direction                   = "Inbound"
-  name                        = "HTTP"
+  name                        = "HTTP-${count.index + 1}"
   network_security_group_name = azurerm_network_security_group.elasticsearch.name
-  priority                    = 320
+  priority                    = 300 + count.index
   protocol                    = "Tcp"
   resource_group_name         = var.resource_group_name
-  source_address_prefix       = "*"
+  source_address_prefix       = var.allowed_ip_ranges[count.index]
   source_port_range           = "*"
 }
 
+# HTTPS Access - Configurable source IP ranges (for Elasticsearch API)
 resource "azurerm_network_security_rule" "elasticsearch_https" {
+  count                       = length(var.allowed_ip_ranges)
   access                      = "Allow"
   destination_address_prefix  = "*"
   destination_port_range      = "443"
   direction                   = "Inbound"
-  name                        = "HTTPS"
+  name                        = "HTTPS-${count.index + 1}"
   network_security_group_name = azurerm_network_security_group.elasticsearch.name
-  priority                    = 340
+  priority                    = 320 + count.index
   protocol                    = "Tcp"
   resource_group_name         = var.resource_group_name
-  source_address_prefix       = "*"
+  source_address_prefix       = var.allowed_ip_ranges[count.index]
   source_port_range           = "*"
 }
 
+# SSH Access - More restrictive IP ranges
 resource "azurerm_network_security_rule" "elasticsearch_ssh" {
+  count                       = length(var.ssh_allowed_ip_ranges)
   access                      = "Allow"
   destination_address_prefix  = "*"
   destination_port_range      = "22"
   direction                   = "Inbound"
-  name                        = "SSH"
+  name                        = "SSH-${count.index + 1}"
   network_security_group_name = azurerm_network_security_group.elasticsearch.name
-  priority                    = 300
+  priority                    = 340 + count.index
   protocol                    = "Tcp"
   resource_group_name         = var.resource_group_name
-  source_address_prefix       = "*"
+  source_address_prefix       = var.ssh_allowed_ip_ranges[count.index]
   source_port_range           = "*"
 }
 
+# RDP Access - Only if explicitly enabled
 resource "azurerm_network_security_rule" "elasticsearch_rdp" {
+  count                       = var.enable_rdp_access ? length(var.ssh_allowed_ip_ranges) : 0
   access                      = "Allow"
   destination_address_prefix  = "*"
   destination_port_range      = "3389"
   direction                   = "Inbound"
-  name                        = "RDP"
+  name                        = "RDP-${count.index + 1}"
   network_security_group_name = azurerm_network_security_group.elasticsearch.name
-  priority                    = 360
+  priority                    = 360 + count.index
   protocol                    = "Tcp"
   resource_group_name         = var.resource_group_name
-  source_address_prefix       = "*"
+  source_address_prefix       = var.ssh_allowed_ip_ranges[count.index]
+  source_port_range           = "*"
+}
+
+# Additional Elasticsearch-specific ports (9200, 9300) for internal communication
+resource "azurerm_network_security_rule" "elasticsearch_api" {
+  access                      = "Allow"
+  destination_address_prefix  = "*"
+  destination_port_ranges     = ["9200", "9300"]
+  direction                   = "Inbound"
+  name                        = "Elasticsearch-Internal"
+  network_security_group_name = azurerm_network_security_group.elasticsearch.name
+  priority                    = 400
+  protocol                    = "Tcp"
+  resource_group_name         = var.resource_group_name
+  source_address_prefix       = var.default_subnet_address_prefixes[0]  # Only from internal subnet
   source_port_range           = "*"
 }
