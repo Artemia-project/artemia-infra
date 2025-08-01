@@ -4,7 +4,6 @@ import subprocess
 import sys
 import json
 import textwrap
-from typing import Dict, Any
 
 GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
 
@@ -29,7 +28,8 @@ def get_review_from_gemini(diff: str, api_key: str) -> str:
     }
     prompt = textwrap.dedent(f"""
         You are a senior software engineer performing a code review.
-        Please provide a concise and constructive code review for the following diff from a pull request:
+        Please provide a concise and constructive code review for the following diff from a pull request.
+        Please provide the review in Korean.
 
         {diff}
         """)
