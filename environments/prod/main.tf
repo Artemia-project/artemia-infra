@@ -70,6 +70,7 @@ module "database" {
   azuread_admin_login_username     = "artemia-group"
   azuread_admin_object_id          = "d671c231-b875-4048-92f7-39ea71f488c6"
   subnet_id                        = module.network.default_subnet_id
+  sku_name                         = var.sku_name
   tags                             = local.tags
 
   depends_on = [azurerm_resource_group.main, module.network]

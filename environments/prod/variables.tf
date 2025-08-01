@@ -68,3 +68,9 @@ variable "administrator_login_password" {
   type        = string
   sensitive   = true
 }
+
+variable "sku_name" {
+  description = "SKU name for the SQL Database"
+  type        = string
+  default     = "GP_S_Gen5_1"
+}

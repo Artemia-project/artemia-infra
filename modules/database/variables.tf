@@ -68,6 +68,12 @@ variable "subnet_id" {
   type        = string
 }
 
+variable "sku_name" {
+  description = "SKU name for the SQL Database"
+  type        = string
+  default     = "GP_S_Gen5_1"
+}
+
 variable "tags" {
   description = "Tags to be applied to resources"
   type        = map(string)

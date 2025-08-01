@@ -21,6 +21,7 @@ resource "azurerm_mssql_database" "main" {
   server_id            = azurerm_mssql_server.main.id
   storage_account_type = var.storage_account_type
   tags                 = var.tags
+  sku_name       = var.sku_name
 }
 
 # Transparent Data Encryption
