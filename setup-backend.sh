@@ -2,7 +2,7 @@
 
 # RESOURCE_GROUP_NAME=artemia-rg
 # STORAGE_ACCOUNT_NAME=artemiastatestore
-# CONTAINER_NAME=tfstate
+# CONTAINER_NAME=terraform-state
 
 # # Create resource group
 # az group create --name $RESOURCE_GROUP_NAME --location koreacentral
@@ -13,6 +13,6 @@
 # # Create blob container
 # az storage container create --name $CONTAINER_NAME --account-name $STORAGE_ACCOUNT_NAME
 
-terraform apply -target=azurerm_resource_group.res-0 -auto-approve
-terraform apply -target=azurerm_storage_account.res-114 -auto-approve
-terraform apply -target=azurerm_storage_container.res-117 -auto-approve
+terraform apply -target=azurerm_resource_group.main -auto-approve
+terraform apply -target=azurerm_storage_account.state -auto-approve
+terraform apply -target=azurerm_storage_container.tfstate -auto-approve
