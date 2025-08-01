@@ -42,12 +42,20 @@ variable "ssh_public_key_backend" {
   description = "SSH public key for backend VM"
   type        = string
   sensitive   = true
+  validation {
+    condition     = can(regex("^ssh-(rsa|ed25519|ecdsa)", var.ssh_public_key_backend))
+    error_message = "SSH public key must be in valid OpenSSH format (ssh-rsa, ssh-ed25519, or ssh-ecdsa)."
+  }
 }
 
 variable "ssh_public_key_llm" {
   description = "SSH public key for LLM VM"
   type        = string
   sensitive   = true
+  validation {
+    condition     = can(regex("^ssh-(rsa|ed25519|ecdsa)", var.ssh_public_key_llm))
+    error_message = "SSH public key must be in valid OpenSSH format (ssh-rsa, ssh-ed25519, or ssh-ecdsa)."
+  }
 }
 
 variable "ssh_public_key_elasticsearch" {
@@ -380,4 +388,114 @@ variable "network_out_threshold" {
   description = "Network out threshold for monitoring alerts (in bytes)"
   type        = number
   default     = 200000000000
+}
+
+# Auto-shutdown configuration
+variable "enable_auto_shutdown" {
+  description = "Enable automatic VM shutdown for cost optimization"
+  type        = bool
+  default     = false
+}
+
+variable "auto_shutdown_time" {
+  description = "Time to automatically shutdown VMs (24-hour format, e.g., '18:00')"
+  type        = string
+  default     = "18:00"
+}
+
+variable "auto_shutdown_timezone" {
+  description = "Timezone for auto-shutdown schedule"
+  type        = string
+  default     = "Korea Standard Time"
+}
+
+variable "auto_start_enabled" {
+  description = "Enable automatic VM startup"
+  type        = bool
+  default     = false
+}
+
+variable "auto_start_time" {
+  description = "Time to automatically start VMs (24-hour format, e.g., '09:00')"
+  type        = string
+  default     = "09:00"
+}
+
+variable "weekend_shutdown_enabled" {
+  description = "Enable weekend shutdown (Friday evening to Monday morning)"
+  type        = bool
+  default     = false
+}
+
+variable "notification_email_shutdown" {
+  description = "Email to notify before VM shutdown"
+  type        = string
+  default     = ""
+}
+
+# Cost optimization settings
+variable "enable_cost_optimization" {
+  description = "Enable cost optimization features"
+  type        = bool
+  default     = false
+}
+
+variable "burstable_vm_sizes" {
+  description = "Use burstable VM sizes for cost optimization (overrides vm_size variables)"
+  type        = bool
+  default     = false
+}
+
+# Security Configuration for Production Environment
+variable "allowed_ip_ranges" {
+  description = "List of IP ranges allowed to access VMs and services (CIDR notation)"
+  type        = list(string)
+  default     = ["0.0.0.0/0"]  # CHANGE THIS FOR PRODUCTION - Use specific office/VPN IP ranges
+  validation {
+    condition = alltrue([
+      for cidr in var.allowed_ip_ranges : can(cidrhost(cidr, 0))
+    ])
+    error_message = "All IP ranges must be valid CIDR notation (e.g., '192.168.1.0/24')."
+  }
+}
+
+variable "ssh_allowed_ip_ranges" {
+  description = "More restrictive IP ranges allowed for SSH access (CIDR notation)"
+  type        = list(string)
+  default     = ["0.0.0.0/0"]  # CHANGE THIS FOR PRODUCTION - Use specific admin IP ranges
+  validation {
+    condition = alltrue([
+      for cidr in var.ssh_allowed_ip_ranges : can(cidrhost(cidr, 0))
+    ])
+    error_message = "All SSH IP ranges must be valid CIDR notation."
+  }
+}
+
+variable "enable_rdp_access" {
+  description = "Enable RDP access (port 3389) - should be false for Linux VMs"
+  type        = bool
+  default     = false
+}
+
+variable "enable_database_public_access" {
+  description = "Enable public access to SQL Server - should be false for production"
+  type        = bool
+  default     = false
+}
+
+variable "database_allowed_ips" {
+  description = "Specific IP ranges allowed to access SQL Server"
+  type = list(object({
+    name             = string
+    start_ip_address = string
+    end_ip_address   = string
+  }))
+  default = [
+    # Add your office/VPN IP ranges here for production
+    # {
+    #   name             = "Office-Network"
+    #   start_ip_address = "203.0.113.1"
+    #   end_ip_address   = "203.0.113.100"
+    # }
+  ]
 }

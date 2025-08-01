@@ -79,3 +79,50 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+# Database Security Configuration
+variable "enable_public_access" {
+  description = "Enable public IP access to SQL Server (should be false for production)"
+  type        = bool
+  default     = false
+}
+
+variable "allowed_ip_ranges" {
+  description = "List of IP ranges allowed to access SQL Server (CIDR notation)"
+  type = list(object({
+    name             = string
+    start_ip_address = string
+    end_ip_address   = string
+  }))
+  default = []
+  validation {
+    condition = alltrue([
+      for ip_range in var.allowed_ip_ranges :
+      can(regex("^([0-9]{1,3}\\.){{3}}[0-9]{1,3}$", ip_range.start_ip_address)) &&
+      can(regex("^([0-9]{1,3}\\.){{3}}[0-9]{1,3}$", ip_range.end_ip_address))
+    ])
+    error_message = "IP addresses must be in valid IPv4 format (e.g., '192.168.1.1')."
+  }
+}
+
+variable "enable_auditing" {
+  description = "Enable SQL Server auditing and logging"
+  type        = bool
+  default     = false
+}
+
+variable "audit_storage_account_id" {
+  description = "Storage account ID for audit logs (required if enable_auditing is true)"
+  type        = string
+  default     = null
+}
+
+variable "minimum_tls_version" {
+  description = "Minimum TLS version for SQL Server connections"
+  type        = string
+  default     = "1.2"
+  validation {
+    condition     = contains(["1.0", "1.1", "1.2"], var.minimum_tls_version)
+    error_message = "Minimum TLS version must be 1.0, 1.1, or 1.2."
+  }
+}

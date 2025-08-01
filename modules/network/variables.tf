@@ -46,3 +46,44 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+# Security Configuration Variables
+variable "allowed_ip_ranges" {
+  description = "List of IP ranges allowed to access VMs (CIDR notation)"
+  type        = list(string)
+  default     = ["0.0.0.0/0"]  # Default allows all - CHANGE FOR PRODUCTION
+  validation {
+    condition = alltrue([
+      for cidr in var.allowed_ip_ranges : can(cidrhost(cidr, 0))
+    ])
+    error_message = "All IP ranges must be valid CIDR notation (e.g., '192.168.1.0/24')."
+  }
+}
+
+variable "enable_rdp_access" {
+  description = "Enable RDP access (port 3389) - typically false for Linux VMs"
+  type        = bool
+  default     = false
+}
+
+variable "ssh_allowed_ip_ranges" {
+  description = "Specific IP ranges allowed for SSH access (more restrictive than general access)"
+  type        = list(string)
+  default     = ["0.0.0.0/0"]  # Default allows all - CHANGE FOR PRODUCTION
+  validation {
+    condition = alltrue([
+      for cidr in var.ssh_allowed_ip_ranges : can(cidrhost(cidr, 0))
+    ])
+    error_message = "All SSH IP ranges must be valid CIDR notation."
+  }
+}
+
+variable "environment" {
+  description = "Environment name (used for security rule priority calculation)"
+  type        = string
+  default     = "prod"
+  validation {
+    condition = contains(["dev", "stg", "prod"], var.environment)
+    error_message = "Environment must be one of: dev, stg, prod."
+  }
+}
