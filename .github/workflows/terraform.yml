@@ -27,9 +27,6 @@ jobs:
       run:
         working-directory: environments/prod
 
-    env:
-      ARM_SKIP_PROVIDER_REGISTRATION: true
-
     permissions:
       contents: read
       id-token: write
