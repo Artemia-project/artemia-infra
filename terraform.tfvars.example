@@ -12,7 +12,7 @@ secondary_email = "your-secondary-email@example.com"
 # SSH Public Keys for VMs
 # You can get these from your existing Azure SSH public keys or generate new ones
 ssh_public_key_backend       = "ssh-rsa your-backend-ssh-key"
-ssh_public_key_llm          = "ssh-rsa your-llm-ssh-key"
+ssh_public_key_data          = "ssh-rsa your-data-ssh-key"
 ssh_public_key_elasticsearch = "ssh-rsa your-elasticsearch-ssh-key"
 
 # Optional: Override default values
