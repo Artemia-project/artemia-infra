@@ -1,0 +1,134 @@
+# terraform.tfvars.example
+# Copy this file to terraform.tfvars and fill in your actual values
+# DO NOT commit terraform.tfvars to version control
+
+# Required variables (must be set)
+subscription_id = "your-azure-subscription-id"
+primary_email = "your-primary-email@example.com"
+secondary_email = "your-secondary-email@example.com"
+
+# SSH Public Keys (required)
+ssh_public_key_backend = "ssh-rsa AAAAB3... your-backend-ssh-key"
+ssh_public_key_data = "ssh-rsa AAAAB3... your-data-ssh-key"
+ssh_public_key_elasticsearch = "ssh-rsa AAAAB3... your-elasticsearch-ssh-key"
+
+# Database credentials (required)
+administrator_login = "artemia_admin"
+administrator_login_password = "your-secure-password"
+sku_name = "GP_S_Gen5_1"
+
+# Optional variables with defaults (can be overridden)
+
+# Project and naming
+project_name = "artemia"
+resource_group_name = "artemia-rg"
+location = "Korea Central"
+
+# Network configuration
+vnet_name = "artemia-vnet"
+vnet_address_space = ["10.0.0.0/16"]
+default_subnet_address_prefixes = ["10.0.0.0/24"]
+firewall_subnet_address_prefixes = ["10.0.1.0/26"]
+load_balancer_name = "artemia-load-balancer"
+
+# VM configuration
+admin_username = "azureuser"
+backend_vm_size = "Standard_D2s_v5"
+data_vm_size = "Standard_D2s_v5"
+elasticsearch_vm_size = "Standard_D2s_v5"
+
+# Storage configuration for VMs
+backend_storage_account_type = "StandardSSD_LRS"
+data_storage_account_type = "Premium_LRS"
+elasticsearch_storage_account_type = "Premium_LRS"
+
+# Database configuration
+server_name = "artemia-server"
+database_name = "artemia-database"
+server_version = "12.0"
+storage_account_type = "Local"
+azuread_authentication_only = false
+azuread_admin_login_username = "artemia-group"
+azuread_admin_object_id = "d671c231-b875-4048-92f7-39ea71f488c6"
+
+# Storage accounts
+main_storage_account_name = "artemiadata"
+state_storage_account_name = "artemiastatestore"
+account_tier = "Standard"
+account_replication_type = "LRS"
+allow_nested_items_to_be_public = false
+min_tls_version = "TLS1_2"  # Improved from TLS1_0
+
+# Messaging configuration
+namespace_name = "artemia-event-hubs-kafka"
+namespace_sku = "Standard"
+local_authentication_enabled = false
+eventhub_name = "artemia-events"
+message_retention = 1
+partition_count = 1
+auth_rule_name = "RootManageSharedAccessKey"
+auth_rule_listen = true
+auth_rule_manage = true
+auth_rule_send = true
+
+# AI/ML configuration
+cognitive_account_name = "artemia-openai"
+custom_subdomain_name = "artemia-openai"
+cognitive_kind = "OpenAI"
+cognitive_sku_name = "S0"
+network_acls_default_action = "Allow"
+
+# Monitoring configuration
+primary_action_group_name = "artemia-ag"
+recommended_action_group_name = "RecommendedAlertRules-AG-1"
+primary_short_name = "Artemia AG"
+recommended_short_name = "recalert1"
+
+# Monitoring thresholds
+cpu_threshold = 80
+memory_threshold = 1000000000  # 1GB in bytes
+disk_iops_threshold = 95
+network_in_threshold = 500000000000   # 500GB in bytes
+network_out_threshold = 200000000000  # 200GB in bytes
+
+# Security Configuration (IMPORTANT: Change these for production!)
+# Network Security - Replace with your office/VPN IP ranges
+allowed_ip_ranges = [
+  "203.0.113.0/24",    # Example: Office network
+  "198.51.100.0/24"    # Example: VPN network
+]
+
+# SSH Access - More restrictive than general access
+ssh_allowed_ip_ranges = [
+  "203.0.113.10/32",   # Example: Admin workstation
+  "198.51.100.10/32"   # Example: Jump server
+]
+
+# RDP Access (typically disabled for Linux VMs)
+enable_rdp_access = false
+
+# Database Security
+enable_database_public_access = false  # Recommended: false for production
+database_allowed_ips = [
+  {
+    name             = "Office-Network"
+    start_ip_address = "203.0.113.1"
+    end_ip_address   = "203.0.113.100"
+  },
+  {
+    name             = "Admin-Access"
+    start_ip_address = "198.51.100.1"
+    end_ip_address   = "198.51.100.10"
+  }
+]
+
+# Auto-shutdown Configuration (Cost Optimization)
+enable_auto_shutdown = false              # Set to true to enable
+auto_shutdown_time = "20:00"              # 8 PM shutdown
+auto_shutdown_timezone = "Korea Standard Time"
+auto_start_enabled = false               # Set to true for automatic startup
+auto_start_time = "08:00"                # 8 AM startup
+weekend_shutdown_enabled = false         # Set to true for weekend shutdown
+notification_email_shutdown = "admin@yourcompany.com"
+enable_cost_optimization = false         # Enable advanced automation
+burstable_vm_sizes = false              # Use cost-optimized VM sizes

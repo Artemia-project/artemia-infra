@@ -273,6 +273,6 @@ resource "azurerm_network_security_rule" "elasticsearch_api" {
   priority                    = 400
   protocol                    = "Tcp"
   resource_group_name         = var.resource_group_name
-  source_address_prefix       = var.default_subnet_address_prefixes[0]  # Only from internal subnet
+  source_address_prefix       = var.default_subnet_address_prefixes[0] # Only from internal subnet
   source_port_range           = "*"
 }

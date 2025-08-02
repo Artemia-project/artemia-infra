@@ -21,9 +21,9 @@ output "automation_account_id" {
 output "cost_savings_estimate" {
   description = "Estimated monthly cost savings information"
   value = var.enable_auto_shutdown ? {
-    daily_shutdown_hours = "10-14 hours per day"
-    weekend_shutdown_hours = var.weekend_shutdown_enabled ? "60+ hours per weekend" : "N/A"
+    daily_shutdown_hours      = "10-14 hours per day"
+    weekend_shutdown_hours    = var.weekend_shutdown_enabled ? "60+ hours per weekend" : "N/A"
     estimated_monthly_savings = "30-60% of VM compute costs"
-    annual_savings_estimate = "~$3,000-8,000 for 3 VMs"
+    annual_savings_estimate   = "~$3,000-8,000 for 3 VMs"
   } : null
 }

@@ -1,6 +1,12 @@
 # Variables for sensitive data
 # Create a terraform.tfvars file to set these values (don't commit it to git)
 
+variable "use_azure_cli" {
+  description = "Use Azure CLI for authentication (true for local, false for CI/CD)"
+  type        = bool
+  default     = true
+}
+
 variable "subscription_id" {
   description = "Azure subscription ID"
   type        = string
@@ -450,7 +456,7 @@ variable "burstable_vm_sizes" {
 variable "allowed_ip_ranges" {
   description = "List of IP ranges allowed to access VMs and services (CIDR notation)"
   type        = list(string)
-  default     = ["0.0.0.0/0"]  # CHANGE THIS FOR PRODUCTION - Use specific office/VPN IP ranges
+  default     = ["0.0.0.0/0"] # CHANGE THIS FOR PRODUCTION - Use specific office/VPN IP ranges
   validation {
     condition = alltrue([
       for cidr in var.allowed_ip_ranges : can(cidrhost(cidr, 0))
@@ -462,7 +468,7 @@ variable "allowed_ip_ranges" {
 variable "ssh_allowed_ip_ranges" {
   description = "More restrictive IP ranges allowed for SSH access (CIDR notation)"
   type        = list(string)
-  default     = ["0.0.0.0/0"]  # CHANGE THIS FOR PRODUCTION - Use specific admin IP ranges
+  default     = ["0.0.0.0/0"] # CHANGE THIS FOR PRODUCTION - Use specific admin IP ranges
   validation {
     condition = alltrue([
       for cidr in var.ssh_allowed_ip_ranges : can(cidrhost(cidr, 0))
