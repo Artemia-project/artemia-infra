@@ -129,20 +129,18 @@ def get_review_from_llm(diff: str, api_key: str) -> str:
         5. **Best Practices**
         
         ### Output Format:
+        For each issue found, use the following structure:
         
-        ## [Issue Summary]
+        ### Issue Summary
+        A brief and clear title describing the issue
         
-        A brief title or label
+        **Explanation:** Why this is an issue and its potential impact
         
-        ### [Explanation] 
+        **Suggestion:** How to fix or improve it
         
-        Why this is an issue and its potential impact
+        **Severity:** Required (🟥) / Recommended (🟧) / Optional (🟨)
         
-        ### [Suggestion]
-        
-        How to fix or improve it
-        
-        ### [Severity] - Required (🟥) / Recommended (🟧) / Optional (🟨)
+        ---
         
         ### Code:
         {diff}
