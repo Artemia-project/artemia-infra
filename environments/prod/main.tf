@@ -22,6 +22,7 @@ module "network" {
   allowed_ip_ranges                = var.allowed_ip_ranges
   ssh_allowed_ip_ranges           = var.ssh_allowed_ip_ranges
   enable_rdp_access               = var.enable_rdp_access
+  airflow_ui_allowed_ip_ranges    = var.airflow_ui_allowed_ip_ranges
   environment                     = "prod"
   
   tags                             = local.tags

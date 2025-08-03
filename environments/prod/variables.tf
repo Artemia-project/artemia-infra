@@ -477,6 +477,18 @@ variable "enable_rdp_access" {
   default     = false
 }
 
+variable "airflow_ui_allowed_ip_ranges" {
+  description = "List of IP ranges allowed to access Airflow UI on port 8080 (CIDR notation)"
+  type        = list(string)
+  default     = ["0.0.0.0/0"] # CHANGE THIS FOR PRODUCTION - Use specific IP ranges for Airflow access
+  validation {
+    condition = alltrue([
+      for cidr in var.airflow_ui_allowed_ip_ranges : can(cidrhost(cidr, 0))
+    ])
+    error_message = "All Airflow UI IP ranges must be valid CIDR notation (e.g., '203.0.113.10/32')."
+  }
+}
+
 variable "enable_database_public_access" {
   description = "Enable public access to SQL Server - should be false for production"
   type        = bool

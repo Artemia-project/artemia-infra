@@ -45,24 +45,8 @@ resource "azurerm_linux_function_app" "function_app" {
   public_network_access_enabled = var.public_network_access == "Enabled"
   functions_extension_version   = "~4"
   
-  function_app_config {
-    deployment {
-      storage_account_name = azurerm_storage_account.function_storage.name
-      storage_key_vault_secret_id = null
-      storage_account_key = azurerm_storage_account.function_storage.primary_access_key
-      storage_uses_managed_identity = false
-    }
-    
-    runtime {
-      name    = var.runtime_name
-      version = var.runtime_version
-    }
-    
-    scale {
-      instance_memory_mb      = var.instance_memory_mb
-      maximum_instance_count = var.maximum_instance_count
-    }
-  }
+# FlexConsumption Function Apps use site_config for runtime configuration
+  # Deployment configuration is handled through deployment slots or ARM templates
   
   site_config {
     ftps_state = "FtpsOnly"
@@ -75,6 +59,9 @@ resource "azurerm_linux_function_app" "function_app" {
       allowed_origins     = ["https://portal.azure.com"]
       support_credentials = false
     }
+    
+    # FlexConsumption specific settings
+    always_on = false
   }
   
   app_settings = {

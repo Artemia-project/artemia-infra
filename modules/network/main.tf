@@ -205,6 +205,22 @@ resource "azurerm_network_security_rule" "data_rdp" {
   source_port_range           = "*"
 }
 
+# Airflow UI Access (port 8080) - Configurable source IP ranges
+resource "azurerm_network_security_rule" "data_airflow_ui" {
+  count                       = length(var.airflow_ui_allowed_ip_ranges)
+  access                      = "Allow"
+  destination_address_prefix  = "*"
+  destination_port_range      = "8080"
+  direction                   = "Inbound"
+  name                        = "Airflow-UI-${count.index + 1}"
+  network_security_group_name = azurerm_network_security_group.data.name
+  priority                    = 380 + count.index
+  protocol                    = "Tcp"
+  resource_group_name         = var.resource_group_name
+  source_address_prefix       = var.airflow_ui_allowed_ip_ranges[count.index]
+  source_port_range           = "*"
+}
+
 # NSG Rules for Elasticsearch VM
 # HTTP Access - Configurable source IP ranges (for Elasticsearch API)
 resource "azurerm_network_security_rule" "elasticsearch_http" {
