@@ -121,19 +121,20 @@ def get_review_from_llm(diff: str, api_key: str) -> str:
         Please provide the review in Korean, focusing on the 3 most important points.
         Think step by step.
         
-        =====Format=====
-        Good:
-        - (...)
-        - (...)
-        - (...)
-        Bad:
-        - (...)
-        - (...)
-        - (...)
-        Action Suggestion:
-        - (...)
-        - (...)
-        - (...)
+        ### Code Review Criteria:
+        1. **Readability**
+        2. **Structure & Design**
+        3. **Performance**
+        4. **Bugs & Edge Cases**
+        5. **Best Practices**
+        
+        ### Output Format:
+        - [Issue Summary] – A brief title or label
+        - [Explanation] – Why this is an issue and its potential impact
+        - [Suggestion] – How to fix or improve it
+        - [Severity] – Required (🟥) / Recommended (🟧) / Optional (🟨)
+        
+        ### Code:
         {diff}
         """)
     data = {"contents": [{"parts": [{"text": prompt}]}]}
