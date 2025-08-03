@@ -4,6 +4,7 @@ import subprocess
 import sys
 import json
 import textwrap
+from error_handler import error, warn, info, handle_subprocess_error, handle_api_error, safe_exit, ErrorContext
 
 LLM_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
 
@@ -18,7 +19,8 @@ def get_last_review_comment_time(pr_number: str) -> str:
         
         comments = comments_output.strip().split('\n') if comments_output.strip() else []
         return comments[-1].strip('"') if comments else ""
-    except subprocess.CalledProcessError:
+    except subprocess.CalledProcessError as e:
+        warn("Could not get last review comment time", pr_number=pr_number)
         return ""
 
 def has_new_commits_since_last_review(pr_number: str) -> bool:
@@ -40,7 +42,7 @@ def has_new_commits_since_last_review(pr_number: str) -> bool:
         return len([c for c in new_commits if c]) > 0
         
     except subprocess.CalledProcessError as e:
-        print(f"Warning: Could not check for new commits: {e.stderr}", file=sys.stderr)
+        handle_subprocess_error(e, "gh pr view for new commits check", {"pr_number": pr_number})
         return True  # 확인할 수 없으면 리뷰하는 것으로 가정
 
 def get_pr_diff(pr_number: str) -> str:
@@ -51,8 +53,8 @@ def get_pr_diff(pr_number: str) -> str:
         )
         return diff_output.strip()
     except subprocess.CalledProcessError as e:
-        print(f"Error fetching PR diff: {e.stderr}", file=sys.stderr)
-        sys.exit(1)
+        handle_subprocess_error(e, "gh pr diff", {"pr_number": pr_number})
+        safe_exit(1, "Failed to fetch PR diff")
 
 def get_review_from_llm(diff: str, api_key: str) -> str:
     """
@@ -92,17 +94,15 @@ def get_review_from_llm(diff: str, api_key: str) -> str:
         content = response.json()
         review_text = content.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text")
         if not review_text:
-            print("Error: Could not extract review from LLM API response.", file=sys.stderr)
-            print(f"Full response: {content}", file=sys.stderr)
-            sys.exit(1)
+            error("Could not extract review from LLM API response", full_response=str(content))
+            safe_exit(1, "LLM API response parsing failed")
         return review_text
     except requests.exceptions.RequestException as e:
-        print(f"Error calling LLM API: {e}", file=sys.stderr)
-        sys.exit(1)
+        handle_api_error(e, LLM_API_URL)
+        safe_exit(1, "LLM API request failed")
     except (KeyError, IndexError) as e:
-        print(f"Error parsing LLM API response: {e}", file=sys.stderr)
-        print(f"Full response: {response.text}", file=sys.stderr)
-        sys.exit(1)
+        error("Error parsing LLM API response", e, response_text=response.text)
+        safe_exit(1, "LLM API response parsing failed")
 
 
 def post_review_comment(pr_number: str, review: str):
@@ -115,8 +115,8 @@ def post_review_comment(pr_number: str, review: str):
             capture_output=True,
         )
     except subprocess.CalledProcessError as e:
-        print(f"Error posting comment to PR: {e.stderr}", file=sys.stderr)
-        sys.exit(1)
+        handle_subprocess_error(e, "gh pr comment", {"pr_number": pr_number})
+        safe_exit(1, "Failed to post comment to PR")
 
 def main():
     """
@@ -124,36 +124,38 @@ def main():
     """
     llm_api_key = os.getenv("LLM_API_KEY")
     if not llm_api_key:
-        print("Error: LLM_API_KEY environment variable not set.", file=sys.stderr)
-        sys.exit(1)
+        error("LLM_API_KEY environment variable not set")
+        safe_exit(1, "Missing required environment variable")
 
     if len(sys.argv) < 2:
-        print("Error: Pull request number not provided.", file=sys.stderr)
-        print("Usage: python code_review.py <PR_NUMBER>", file=sys.stderr)
-        sys.exit(1)
+        error("Pull request number not provided")
+        info("Usage: python code_review.py <PR_NUMBER>")
+        safe_exit(1, "Invalid command line arguments")
 
     pr_number = sys.argv[1]
 
-    # 마지막 리뷰 이후 새로운 커밋이 있는지 확인
-    if not has_new_commits_since_last_review(pr_number):
-        print(f"No new commits found since last review for PR #{pr_number}. Skipping code review.")
-        return
+    # 전체 코드리뷰 프로세스를 컨텍스트로 관리
+    with ErrorContext("code review process", pr_number=pr_number):
+        # 마지막 리뷰 이후 새로운 커밋이 있는지 확인
+        if not has_new_commits_since_last_review(pr_number):
+            info(f"No new commits found since last review for PR #{pr_number}. Skipping code review.")
+            return
 
-    print(f"Fetching diff for PR #{pr_number}...")
-    diff_output = get_pr_diff(pr_number)
+        info(f"Fetching diff for PR #{pr_number}")
+        diff_output = get_pr_diff(pr_number)
 
-    # diff가 비어있는지 확인
-    if not diff_output:
-        print(f"No diff found for PR #{pr_number}. Skipping code review.")
-        return
+        # diff가 비어있는지 확인
+        if not diff_output:
+            info(f"No diff found for PR #{pr_number}. Skipping code review.")
+            return
 
-    print("Requesting review from LLLM...")
-    review = get_review_from_llm(diff_output, llm_api_key)
+        info("Requesting review from LLM")
+        review = get_review_from_llm(diff_output, llm_api_key)
 
-    print(f"Posting review to PR #{pr_number}...")
-    post_review_comment(pr_number, review)
+        info(f"Posting review to PR #{pr_number}")
+        post_review_comment(pr_number, review)
 
-    print("Code review comment posted successfully.")
+        info("Code review comment posted successfully")
 
 if __name__ == "__main__":
     main()
