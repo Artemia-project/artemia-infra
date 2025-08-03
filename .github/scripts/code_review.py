@@ -4,6 +4,7 @@ import subprocess
 import sys
 import json
 import textwrap
+from datetime import datetime
 from error_handler import error, warn, info, handle_subprocess_error, handle_api_error, safe_exit, ErrorContext
 
 LLM_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
@@ -32,16 +33,28 @@ def has_new_commits_since_last_review(pr_number: str) -> bool:
         return True
     
     try:
-        # 마지막 리뷰 시간 이후의 커밋들 조회
-        new_commits_output = subprocess.check_output([
+        # 모든 커밋의 데이터를 가져와서 Python에서 날짜 비교
+        commits_output = subprocess.check_output([
             "gh", "pr", "view", pr_number, "--json", "commits",
-            "--jq", f".commits[] | select(.committedDate > \"{last_review_time}\") | .oid"
+            "--jq", ".commits[] | {oid: .oid, committedDate: .committedDate}"
         ], text=True, stderr=subprocess.PIPE)
         
-        new_commits = new_commits_output.strip().split('\n') if new_commits_output.strip() else []
-        return len([c for c in new_commits if c]) > 0
+        if not commits_output.strip():
+            return False
+            
+        # 각 커밋을 파싱하여 날짜 비교
+        last_review_dt = datetime.fromisoformat(last_review_time.replace('Z', '+00:00'))
         
-    except subprocess.CalledProcessError as e:
+        for line in commits_output.strip().split('\n'):
+            if line:
+                commit_data = json.loads(line)
+                commit_dt = datetime.fromisoformat(commit_data['committedDate'].replace('Z', '+00:00'))
+                if commit_dt > last_review_dt:
+                    return True
+        
+        return False
+        
+    except (subprocess.CalledProcessError, ValueError, json.JSONDecodeError) as e:
         handle_subprocess_error(e, "gh pr view for new commits check", {"pr_number": pr_number})
         return True  # 확인할 수 없으면 리뷰하는 것으로 가정
 
