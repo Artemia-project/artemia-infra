@@ -73,26 +73,16 @@ def get_pr_diff(pr_number: str) -> str:
         return ""
     
     try:
-        if len(new_commits) == 1:
-            # 단일 커밋의 경우 해당 커밋의 diff만
-            diff_output = subprocess.check_output([
-                "git", "show", "--format=", new_commits[0]
+        # 새로운 커밋들의 개별 diff를 모두 합치기
+        all_diffs = []
+        for commit_hash in new_commits:
+            commit_diff = subprocess.check_output([
+                "git", "show", "--format=", commit_hash
             ], text=True, stderr=subprocess.PIPE)
-        else:
-            # 여러 커밋의 경우 첫 커밋 이전부터 마지막 커밋까지의 range diff
-            first_commit = new_commits[0]
-            last_commit = new_commits[-1]
-            
-            # 첫 번째 커밋의 부모 찾기
-            parent_output = subprocess.check_output([
-                "git", "rev-parse", f"{first_commit}^"
-            ], text=True, stderr=subprocess.PIPE)
-            parent_commit = parent_output.strip()
-            
-            # 범위 diff 가져오기
-            diff_output = subprocess.check_output([
-                "git", "diff", f"{parent_commit}..{last_commit}"
-            ], text=True, stderr=subprocess.PIPE)
+            if commit_diff.strip():
+                all_diffs.append(f"=== Commit {commit_hash[:8]} ===\n{commit_diff}")
+        
+        diff_output = "\n\n".join(all_diffs)
         
         return diff_output.strip()
         
