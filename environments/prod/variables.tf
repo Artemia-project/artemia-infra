@@ -504,7 +504,7 @@ variable "database_allowed_ips" {
 variable "function_app_name" {
   description = "Name of the Function App"
   type        = string
-  default     = "artemia-data-extract-function"
+  default     = "artemia-data-pipeline-function"
 }
 
 variable "app_service_plan_name" {
