@@ -9,6 +9,42 @@ from error_handler import error, warn, info, handle_subprocess_error, handle_api
 
 LLM_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
 
+def get_last_reviewed_commit(pr_number: str) -> str:
+    """마지막으로 리뷰된 커밋 해시를 가져옴"""
+    try:
+        # 코드리뷰 형식을 포함한 댓글 검색하고 커밋 해시 추출
+        comments_output = subprocess.check_output([
+            "gh", "pr", "view", pr_number, "--json", "comments", 
+            "--jq", ".comments[] | select(.body | contains(\"Good:\") and contains(\"Bad:\") and contains(\"Action Suggestion:\")) | {createdAt: .createdAt, body: .body}"
+        ], text=True, stderr=subprocess.PIPE)
+        
+        if not comments_output.strip():
+            return ""
+            
+        comments = []
+        for line in comments_output.strip().split('\n'):
+            if line:
+                comments.append(json.loads(line))
+                
+        if not comments:
+            return ""
+            
+        last_comment = comments[-1]
+        
+        # 댓글에서 커밋 해시 추출 (있다면)
+        comment_body = last_comment['body']
+        if "<!-- reviewed_commit:" in comment_body:
+            start = comment_body.find("<!-- reviewed_commit:") + 21
+            end = comment_body.find("-->", start)
+            if end > start:
+                return comment_body[start:end].strip()
+        
+        return ""
+        
+    except (subprocess.CalledProcessError, json.JSONDecodeError) as e:
+        warn("Could not get last reviewed commit", pr_number=pr_number)
+        return ""
+
 def get_last_review_comment_time(pr_number: str) -> str:
     """마지막 코드리뷰 댓글의 시간을 가져옴"""
     try:
@@ -57,6 +93,34 @@ def has_new_commits_since_last_review(pr_number: str) -> bool:
     except (subprocess.CalledProcessError, ValueError, json.JSONDecodeError) as e:
         handle_subprocess_error(e, "gh pr view for new commits check", {"pr_number": pr_number})
         return True  # 확인할 수 없으면 리뷰하는 것으로 가정
+
+def should_skip_review(pr_number: str) -> bool:
+    """리뷰를 건너뛸지 결정 (최신 커밋 해시 기반)"""
+    last_reviewed_commit = get_last_reviewed_commit(pr_number)
+    
+    if not last_reviewed_commit:
+        # 이전 리뷰가 없으면 리뷰 필요
+        return False
+    
+    try:
+        # PR의 최신 커밋 해시 가져오기
+        latest_commit_output = subprocess.check_output([
+            "gh", "pr", "view", pr_number, "--json", "commits",
+            "--jq", ".commits[-1].oid"
+        ], text=True, stderr=subprocess.PIPE)
+        
+        latest_commit = latest_commit_output.strip().strip('"')
+        
+        # 최신 커밋이 이미 리뷰된 커밋과 같으면 건너뛰기
+        if latest_commit == last_reviewed_commit:
+            info(f"Latest commit {latest_commit[:7]} already reviewed. Skipping review.")
+            return True
+            
+        return False
+        
+    except subprocess.CalledProcessError as e:
+        handle_subprocess_error(e, "gh pr view for latest commit", {"pr_number": pr_number})
+        return False  # 확인할 수 없으면 리뷰 진행
 
 def get_pr_diff(pr_number: str) -> str:
     """GitHub에서 PR의 diff를 가져옴"""
@@ -118,11 +182,14 @@ def get_review_from_llm(diff: str, api_key: str) -> str:
         safe_exit(1, "LLM API response parsing failed")
 
 
-def post_review_comment(pr_number: str, review: str):
-    """GitHub PR에 코드리뷰 댓글을 게시"""
+def post_review_comment(pr_number: str, review: str, commit_hash: str):
+    """GitHub PR에 코드리뷰 댓글을 게시 (리뷰된 커밋 해시 포함)"""
     try:
+        # 리뷰된 커밋 해시를 댓글에 숨겨진 메타데이터로 추가
+        review_with_commit = f"{review}\n\n<!-- reviewed_commit:{commit_hash} -->"
+        
         subprocess.run(
-            ["gh", "pr", "comment", pr_number, "--body", review],
+            ["gh", "pr", "comment", pr_number, "--body", review_with_commit],
             check=True,
             text=True,
             capture_output=True,
@@ -149,9 +216,9 @@ def main():
 
     # 전체 코드리뷰 프로세스를 컨텍스트로 관리
     with ErrorContext("code review process", pr_number=pr_number):
-        # 마지막 리뷰 이후 새로운 커밋이 있는지 확인
-        if not has_new_commits_since_last_review(pr_number):
-            info(f"No new commits found since last review for PR #{pr_number}. Skipping code review.")
+        # 리뷰를 건너뛸지 확인 (최신 커밋 해시 기반)
+        if should_skip_review(pr_number):
+            info(f"Latest commit already reviewed for PR #{pr_number}. Skipping code review.")
             return
 
         info(f"Fetching diff for PR #{pr_number}")
@@ -165,8 +232,18 @@ def main():
         info("Requesting review from LLM")
         review = get_review_from_llm(diff_output, llm_api_key)
 
+        # 최신 커밋 해시 가져오기
+        try:
+            latest_commit_output = subprocess.check_output([
+                "gh", "pr", "view", pr_number, "--json", "commits",
+                "--jq", ".commits[-1].oid"
+            ], text=True, stderr=subprocess.PIPE)
+            latest_commit = latest_commit_output.strip().strip('"')
+        except subprocess.CalledProcessError:
+            latest_commit = "unknown"
+
         info(f"Posting review to PR #{pr_number}")
-        post_review_comment(pr_number, review)
+        post_review_comment(pr_number, review, latest_commit)
 
         info("Code review comment posted successfully")
 
