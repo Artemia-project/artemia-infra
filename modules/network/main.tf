@@ -24,6 +24,14 @@ resource "azurerm_subnet" "firewall" {
   virtual_network_name = azurerm_virtual_network.vnet.name
 }
 
+# Azure Bastion Subnet
+resource "azurerm_subnet" "bastion" {
+  address_prefixes     = var.bastion_subnet_address_prefixes
+  name                 = "AzureBastionSubnet"
+  resource_group_name  = var.resource_group_name
+  virtual_network_name = azurerm_virtual_network.vnet.name
+}
+
 # Load Balancer - using subnet for internal LB
 resource "azurerm_lb" "main" {
   location            = var.location
@@ -275,4 +283,30 @@ resource "azurerm_network_security_rule" "elasticsearch_api" {
   resource_group_name         = var.resource_group_name
   source_address_prefix       = var.default_subnet_address_prefixes[0]  # Only from internal subnet
   source_port_range           = "*"
+}
+
+# Azure Bastion Public IP
+resource "azurerm_public_ip" "bastion" {
+  allocation_method   = "Static"
+  location            = var.location
+  name                = "${var.project_name}-vnet-ip"
+  resource_group_name = var.resource_group_name
+  sku                 = "Standard"
+  tags                = var.tags
+}
+
+# Azure Bastion Host
+resource "azurerm_bastion_host" "main" {
+  location            = var.location
+  name                = "${var.project_name}-vnet-bastion"
+  resource_group_name = var.resource_group_name
+  sku                 = "Standard"
+  scale_units         = 2
+  tags                = var.tags
+
+  ip_configuration {
+    name                 = "IpConf"
+    subnet_id            = azurerm_subnet.bastion.id
+    public_ip_address_id = azurerm_public_ip.bastion.id
+  }
 }

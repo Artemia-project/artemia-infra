@@ -18,6 +18,11 @@ output "firewall_subnet_id" {
   value       = azurerm_subnet.firewall.id
 }
 
+output "bastion_subnet_id" {
+  description = "ID of the bastion subnet"
+  value       = azurerm_subnet.bastion.id
+}
+
 output "load_balancer_id" {
   description = "ID of the load balancer"
   value       = azurerm_lb.main.id
@@ -41,4 +46,14 @@ output "data_nsg_id" {
 output "elasticsearch_nsg_id" {
   description = "ID of the Elasticsearch NSG"
   value       = azurerm_network_security_group.elasticsearch.id
+}
+
+output "bastion_public_ip_id" {
+  description = "ID of the bastion public IP"
+  value       = azurerm_public_ip.bastion.id
+}
+
+output "bastion_host_id" {
+  description = "ID of the bastion host"
+  value       = azurerm_bastion_host.main.id
 }
