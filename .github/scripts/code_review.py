@@ -122,16 +122,86 @@ def should_skip_review(pr_number: str) -> bool:
         handle_subprocess_error(e, "gh pr view for latest commit", {"pr_number": pr_number})
         return False  # 확인할 수 없으면 리뷰 진행
 
-def get_pr_diff(pr_number: str) -> str:
-    """GitHub에서 PR의 diff를 가져옴"""
+def get_new_commits_diff(pr_number: str) -> str:
+    """마지막 리뷰 이후 새로운 커밋들의 diff만 가져옴"""
+    last_review_time = get_last_review_comment_time(pr_number)
+    
+    if not last_review_time:
+        # 이전 리뷰가 없으면 전체 PR diff 반환
+        try:
+            diff_output = subprocess.check_output(
+                ["gh", "pr", "diff", pr_number], text=True, stderr=subprocess.PIPE
+            )
+            return diff_output.strip()
+        except subprocess.CalledProcessError as e:
+            handle_subprocess_error(e, "gh pr diff", {"pr_number": pr_number})
+            safe_exit(1, "Failed to fetch PR diff")
+    
     try:
-        diff_output = subprocess.check_output(
-            ["gh", "pr", "diff", pr_number], text=True, stderr=subprocess.PIPE
-        )
+        # 마지막 리뷰 이후의 새로운 커밋들 찾기
+        commits_output = subprocess.check_output([
+            "gh", "pr", "view", pr_number, "--json", "commits",
+            "--jq", ".commits[] | {oid: .oid, committedDate: .committedDate}"
+        ], text=True, stderr=subprocess.PIPE)
+        
+        if not commits_output.strip():
+            return ""
+            
+        # 새로운 커밋들 필터링
+        last_review_dt = datetime.fromisoformat(last_review_time.replace('Z', '+00:00'))
+        new_commit_hashes = []
+        
+        for line in commits_output.strip().split('\n'):
+            if line:
+                commit_data = json.loads(line)
+                commit_dt = datetime.fromisoformat(commit_data['committedDate'].replace('Z', '+00:00'))
+                if commit_dt > last_review_dt:
+                    new_commit_hashes.append(commit_data['oid'])
+        
+        if not new_commit_hashes:
+            return ""
+        
+        # 새로운 커밋들의 diff 가져오기
+        # 첫 번째 새 커밋의 부모부터 마지막 새 커밋까지의 diff
+        if len(new_commit_hashes) == 1:
+            # 단일 커밋의 경우
+            diff_output = subprocess.check_output([
+                "gh", "api", f"repos/:owner/:repo/commits/{new_commit_hashes[0]}",
+                "--jq", ".files[].patch // empty"
+            ], text=True, stderr=subprocess.PIPE)
+        else:
+            # 여러 커밋의 경우 range diff 사용
+            first_commit = new_commit_hashes[0]
+            last_commit = new_commit_hashes[-1]
+            
+            # 첫 번째 새 커밋의 부모 커밋 찾기
+            parent_output = subprocess.check_output([
+                "gh", "api", f"repos/:owner/:repo/commits/{first_commit}",
+                "--jq", ".parents[0].sha"
+            ], text=True, stderr=subprocess.PIPE)
+            parent_commit = parent_output.strip().strip('"')
+            
+            # 범위 diff 가져오기
+            diff_output = subprocess.check_output([
+                "git", "diff", f"{parent_commit}..{last_commit}"
+            ], text=True, stderr=subprocess.PIPE)
+        
         return diff_output.strip()
-    except subprocess.CalledProcessError as e:
-        handle_subprocess_error(e, "gh pr diff", {"pr_number": pr_number})
-        safe_exit(1, "Failed to fetch PR diff")
+        
+    except (subprocess.CalledProcessError, ValueError, json.JSONDecodeError) as e:
+        handle_subprocess_error(e, "get new commits diff", {"pr_number": pr_number})
+        # 실패 시 전체 PR diff로 폴백
+        try:
+            diff_output = subprocess.check_output(
+                ["gh", "pr", "diff", pr_number], text=True, stderr=subprocess.PIPE
+            )
+            return diff_output.strip()
+        except subprocess.CalledProcessError:
+            safe_exit(1, "Failed to fetch any diff")
+
+def get_pr_diff(pr_number: str) -> str:
+    """GitHub에서 PR의 diff를 가져옴 (하위 호환성)"""
+    return get_new_commits_diff(pr_number)
 
 def get_review_from_llm(diff: str, api_key: str) -> str:
     """
