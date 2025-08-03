@@ -86,16 +86,11 @@ def get_pr_diff(pr_number: str) -> str:
         
         return diff_output.strip()
         
-    except subprocess.CalledProcessError:
-        # git 명령 실패 시 전체 PR diff로 폴백
-        try:
-            diff_output = subprocess.check_output(
-                ["gh", "pr", "diff", pr_number], text=True, stderr=subprocess.PIPE
-            )
-            return diff_output.strip()
-        except subprocess.CalledProcessError as e:
-            handle_subprocess_error(e, "gh pr diff fallback", {"pr_number": pr_number})
-            safe_exit(1, "Failed to fetch any diff")
+    except subprocess.CalledProcessError as e:
+        # git 명령 실패 시에만 fallback 사용, 새로운 커밋이 없는 경우에는 fallback 사용하지 않음
+        warn(f"Git command failed for new commits, but will not use fallback for PR #{pr_number}")
+        handle_subprocess_error(e, "git show for new commits", {"pr_number": pr_number, "commits": new_commits})
+        return ""
 
 def get_review_from_llm(diff: str, api_key: str) -> str:
     """
