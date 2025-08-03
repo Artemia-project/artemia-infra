@@ -173,6 +173,28 @@ module "monitoring" {
   depends_on = [azurerm_resource_group.main, module.compute]
 }
 
+# Functions Module
+module "functions" {
+  source = "../../modules/functions"
+
+  resource_group_name      = azurerm_resource_group.main.name
+  location                 = local.location
+  function_app_name        = var.function_app_name
+  app_service_plan_name    = var.app_service_plan_name
+  storage_account_name     = var.function_storage_account_name
+  runtime_name             = var.function_runtime_name
+  runtime_version          = var.function_runtime_version
+  instance_memory_mb       = var.function_instance_memory_mb
+  maximum_instance_count   = var.function_maximum_instance_count
+  https_only               = var.function_https_only
+  public_network_access    = var.function_public_network_access
+  key_vault_reference_identity = var.function_key_vault_reference_identity
+
+  tags = local.tags
+
+  depends_on = [azurerm_resource_group.main]
+}
+
 # Auto-shutdown Module for Cost Optimization
 module "auto_shutdown" {
   source = "../../modules/auto-shutdown"

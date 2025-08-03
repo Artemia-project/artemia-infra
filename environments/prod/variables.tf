@@ -499,3 +499,70 @@ variable "database_allowed_ips" {
     # }
   ]
 }
+
+# Function App Configuration
+variable "function_app_name" {
+  description = "Name of the Function App"
+  type        = string
+  default     = "artemia-data-extract-function"
+}
+
+variable "app_service_plan_name" {
+  description = "Name of the App Service Plan for Function App"
+  type        = string
+  default     = "ASP-artemiarg-bc89"
+}
+
+variable "function_storage_account_name" {
+  description = "Name of the storage account for Function App"
+  type        = string
+  default     = "artemiafunctiondata"
+}
+
+variable "function_runtime_name" {
+  description = "Runtime name for the Function App"
+  type        = string
+  default     = "python"
+}
+
+variable "function_runtime_version" {
+  description = "Runtime version for the Function App"
+  type        = string
+  default     = "3.12"
+}
+
+variable "function_instance_memory_mb" {
+  description = "Instance memory in MB for Function App"
+  type        = number
+  default     = 2048
+}
+
+variable "function_maximum_instance_count" {
+  description = "Maximum instance count for Function App"
+  type        = number
+  default     = 100
+}
+
+variable "function_https_only" {
+  description = "Enable HTTPS only for Function App"
+  type        = bool
+  default     = true
+}
+
+variable "function_public_network_access" {
+  description = "Public network access setting for Function App"
+  type        = string
+  default     = "Enabled"
+}
+
+variable "function_key_vault_reference_identity" {
+  description = "Key Vault reference identity for Function App"
+  type        = string
+  default     = "SystemAssigned"
+}
+
+variable "use_azure_cli" {
+  description = "Use Azure CLI for authentication"
+  type        = bool
+  default     = true
+}

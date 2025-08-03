@@ -104,3 +104,34 @@ output "recommended_action_group_id" {
   description = "ID of the recommended action group"
   value       = module.monitoring.recommended_action_group_id
 }
+
+# Function App Outputs
+output "function_app_id" {
+  description = "ID of the Function App"
+  value       = module.functions.function_app_id
+}
+
+output "function_app_name" {
+  description = "Name of the Function App"
+  value       = module.functions.function_app_name
+}
+
+output "function_app_default_hostname" {
+  description = "Default hostname of the Function App"
+  value       = module.functions.function_app_default_hostname
+}
+
+output "function_app_outbound_ip_addresses" {
+  description = "Outbound IP addresses of the Function App"
+  value       = module.functions.function_app_outbound_ip_addresses
+}
+
+output "function_app_service_plan_id" {
+  description = "ID of the Function App Service Plan"
+  value       = module.functions.app_service_plan_id
+}
+
+output "function_storage_account_id" {
+  description = "ID of the Function App storage account"
+  value       = module.functions.storage_account_id
+}
