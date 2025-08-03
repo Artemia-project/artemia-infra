@@ -130,8 +130,11 @@ def get_review_from_llm(diff: str, api_key: str) -> str:
         
         ### Output Format:
         - [Issue Summary] – A brief title or label
+        
         - [Explanation] – Why this is an issue and its potential impact
+        
         - [Suggestion] – How to fix or improve it
+        
         - [Severity] – Required (🟥) / Recommended (🟧) / Optional (🟨)
         
         ### Code:
