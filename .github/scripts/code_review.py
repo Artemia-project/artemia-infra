@@ -76,9 +76,23 @@ def get_pr_diff(pr_number: str) -> str:
         # 새로운 커밋들의 개별 diff를 모두 합치기
         all_diffs = []
         for commit_hash in new_commits:
-            commit_diff = subprocess.check_output([
-                "git", "show", "--format=", commit_hash
-            ], text=True, stderr=subprocess.PIPE)
+            try:
+                # 먼저 git show로 시도
+                commit_diff = subprocess.check_output([
+                    "git", "show", "--format=", commit_hash
+                ], text=True, stderr=subprocess.PIPE)
+            except subprocess.CalledProcessError:
+                # git show 실패 시 gh api로 커밋 diff 가져오기
+                try:
+                    commit_diff = subprocess.check_output([
+                        "gh", "api", f"repos/{{owner}}/{{repo}}/commits/{commit_hash}",
+                        "--jq", ".files[] | \"--- a/\" + .filename + \"\\n+++ b/\" + .filename + \"\\n\" + .patch"
+                    ], text=True, stderr=subprocess.PIPE)
+                except subprocess.CalledProcessError:
+                    # gh api도 실패하면 해당 커밋은 건너뛰기
+                    warn(f"Could not get diff for commit {commit_hash[:8]}")
+                    continue
+                    
             if commit_diff.strip():
                 all_diffs.append(f"=== Commit {commit_hash[:8]} ===\n{commit_diff}")
         
@@ -86,10 +100,10 @@ def get_pr_diff(pr_number: str) -> str:
         
         return diff_output.strip()
         
-    except subprocess.CalledProcessError as e:
-        # git 명령 실패 시에만 fallback 사용, 새로운 커밋이 없는 경우에는 fallback 사용하지 않음
-        warn(f"Git command failed for new commits, but will not use fallback for PR #{pr_number}")
-        handle_subprocess_error(e, "git show for new commits", {"pr_number": pr_number, "commits": new_commits})
+    except Exception as e:
+        # 예상치 못한 에러 발생 시
+        warn(f"Unexpected error getting diffs for new commits in PR #{pr_number}")
+        handle_subprocess_error(e, "get diffs for new commits", {"pr_number": pr_number, "commits": new_commits})
         return ""
 
 def get_review_from_llm(diff: str, api_key: str) -> str:
