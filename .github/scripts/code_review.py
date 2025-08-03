@@ -197,10 +197,8 @@ def main():
 
         info("Requesting review from LLM")
         review = get_review_from_llm(diff_output, llm_api_key)
-
         info(f"Posting review to PR #{pr_number}")
         post_review_comment(pr_number, review)
-
         info("Code review comment posted successfully")
 
 if __name__ == "__main__":
