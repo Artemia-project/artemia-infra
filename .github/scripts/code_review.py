@@ -9,42 +9,6 @@ from error_handler import error, warn, info, handle_subprocess_error, handle_api
 
 LLM_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
 
-def get_last_reviewed_commit(pr_number: str) -> str:
-    """마지막으로 리뷰된 커밋 해시를 가져옴"""
-    try:
-        # 코드리뷰 형식을 포함한 댓글 검색하고 커밋 해시 추출
-        comments_output = subprocess.check_output([
-            "gh", "pr", "view", pr_number, "--json", "comments", 
-            "--jq", ".comments[] | select(.body | contains(\"Good:\") and contains(\"Bad:\") and contains(\"Action Suggestion:\")) | {createdAt: .createdAt, body: .body}"
-        ], text=True, stderr=subprocess.PIPE)
-        
-        if not comments_output.strip():
-            return ""
-            
-        comments = []
-        for line in comments_output.strip().split('\n'):
-            if line:
-                comments.append(json.loads(line))
-                
-        if not comments:
-            return ""
-            
-        last_comment = comments[-1]
-        
-        # 댓글에서 커밋 해시 추출 (있다면)
-        comment_body = last_comment['body']
-        if "<!-- reviewed_commit:" in comment_body:
-            start = comment_body.find("<!-- reviewed_commit:") + 21
-            end = comment_body.find("-->", start)
-            if end > start:
-                return comment_body[start:end].strip()
-        
-        return ""
-        
-    except (subprocess.CalledProcessError, json.JSONDecodeError) as e:
-        warn("Could not get last reviewed commit", pr_number=pr_number)
-        return ""
-
 def get_last_review_comment_time(pr_number: str) -> str:
     """마지막 코드리뷰 댓글의 시간을 가져옴"""
     try:
@@ -56,17 +20,13 @@ def get_last_review_comment_time(pr_number: str) -> str:
         
         comments = comments_output.strip().split('\n') if comments_output.strip() else []
         return comments[-1].strip('"') if comments else ""
-    except subprocess.CalledProcessError as e:
+    except subprocess.CalledProcessError:
         warn("Could not get last review comment time", pr_number=pr_number)
         return ""
 
-def has_new_commits_since_last_review(pr_number: str) -> bool:
-    """마지막 코드리뷰 이후 새로운 커밋이 있는지 확인"""
+def get_new_commits_since_last_review(pr_number: str) -> list:
+    """마지막 리뷰 이후 새로운 커밋들의 해시를 가져옴"""
     last_review_time = get_last_review_comment_time(pr_number)
-    
-    if not last_review_time:
-        # 이전 리뷰가 없으면 리뷰 필요
-        return True
     
     try:
         # 모든 커밋의 데이터를 가져와서 Python에서 날짜 비교
@@ -76,80 +36,20 @@ def has_new_commits_since_last_review(pr_number: str) -> bool:
         ], text=True, stderr=subprocess.PIPE)
         
         if not commits_output.strip():
-            return False
+            return []
             
-        # 각 커밋을 파싱하여 날짜 비교
-        last_review_dt = datetime.fromisoformat(last_review_time.replace('Z', '+00:00'))
-        
-        for line in commits_output.strip().split('\n'):
-            if line:
-                commit_data = json.loads(line)
-                commit_dt = datetime.fromisoformat(commit_data['committedDate'].replace('Z', '+00:00'))
-                if commit_dt > last_review_dt:
-                    return True
-        
-        return False
-        
-    except (subprocess.CalledProcessError, ValueError, json.JSONDecodeError) as e:
-        handle_subprocess_error(e, "gh pr view for new commits check", {"pr_number": pr_number})
-        return True  # 확인할 수 없으면 리뷰하는 것으로 가정
-
-def should_skip_review(pr_number: str) -> bool:
-    """리뷰를 건너뛸지 결정 (최신 커밋 해시 기반)"""
-    last_reviewed_commit = get_last_reviewed_commit(pr_number)
-    
-    if not last_reviewed_commit:
-        # 이전 리뷰가 없으면 리뷰 필요
-        return False
-    
-    try:
-        # PR의 최신 커밋 해시 가져오기
-        latest_commit_output = subprocess.check_output([
-            "gh", "pr", "view", pr_number, "--json", "commits",
-            "--jq", ".commits[-1].oid"
-        ], text=True, stderr=subprocess.PIPE)
-        
-        latest_commit = latest_commit_output.strip().strip('"')
-        
-        # 최신 커밋이 이미 리뷰된 커밋과 같으면 건너뛰기
-        if latest_commit == last_reviewed_commit:
-            info(f"Latest commit {latest_commit[:7]} already reviewed. Skipping review.")
-            return True
-            
-        return False
-        
-    except subprocess.CalledProcessError as e:
-        handle_subprocess_error(e, "gh pr view for latest commit", {"pr_number": pr_number})
-        return False  # 확인할 수 없으면 리뷰 진행
-
-def get_new_commits_diff(pr_number: str) -> str:
-    """마지막 리뷰 이후 새로운 커밋들의 diff만 가져옴"""
-    last_review_time = get_last_review_comment_time(pr_number)
-    
-    if not last_review_time:
-        # 이전 리뷰가 없으면 전체 PR diff 반환
-        try:
-            diff_output = subprocess.check_output(
-                ["gh", "pr", "diff", pr_number], text=True, stderr=subprocess.PIPE
-            )
-            return diff_output.strip()
-        except subprocess.CalledProcessError as e:
-            handle_subprocess_error(e, "gh pr diff", {"pr_number": pr_number})
-            safe_exit(1, "Failed to fetch PR diff")
-    
-    try:
-        # 마지막 리뷰 이후의 새로운 커밋들 찾기
-        commits_output = subprocess.check_output([
-            "gh", "pr", "view", pr_number, "--json", "commits",
-            "--jq", ".commits[] | {oid: .oid, committedDate: .committedDate}"
-        ], text=True, stderr=subprocess.PIPE)
-        
-        if not commits_output.strip():
-            return ""
-            
-        # 새로운 커밋들 필터링
-        last_review_dt = datetime.fromisoformat(last_review_time.replace('Z', '+00:00'))
         new_commit_hashes = []
+        
+        # 이전 리뷰가 없으면 모든 커밋 반환
+        if not last_review_time:
+            for line in commits_output.strip().split('\n'):
+                if line:
+                    commit_data = json.loads(line)
+                    new_commit_hashes.append(commit_data['oid'])
+            return new_commit_hashes
+        
+        # 마지막 리뷰 이후 커밋들만 필터링
+        last_review_dt = datetime.fromisoformat(last_review_time.replace('Z', '+00:00'))
         
         for line in commits_output.strip().split('\n'):
             if line:
@@ -158,28 +58,36 @@ def get_new_commits_diff(pr_number: str) -> str:
                 if commit_dt > last_review_dt:
                     new_commit_hashes.append(commit_data['oid'])
         
-        if not new_commit_hashes:
-            return ""
+        return new_commit_hashes
         
-        # 새로운 커밋들의 diff 가져오기
-        # 첫 번째 새 커밋의 부모부터 마지막 새 커밋까지의 diff
-        if len(new_commit_hashes) == 1:
-            # 단일 커밋의 경우
+    except (subprocess.CalledProcessError, ValueError, json.JSONDecodeError):
+        handle_subprocess_error(Exception(), "get new commits since last review", {"pr_number": pr_number})
+        return []
+
+def get_pr_diff(pr_number: str) -> str:
+    """마지막 리뷰 이후 새로운 커밋들의 diff만 가져옴"""
+    new_commits = get_new_commits_since_last_review(pr_number)
+    
+    if not new_commits:
+        info(f"No new commits found for PR #{pr_number}")
+        return ""
+    
+    try:
+        if len(new_commits) == 1:
+            # 단일 커밋의 경우 해당 커밋의 diff만
             diff_output = subprocess.check_output([
-                "gh", "api", f"repos/:owner/:repo/commits/{new_commit_hashes[0]}",
-                "--jq", ".files[].patch // empty"
+                "git", "show", "--format=", new_commits[0]
             ], text=True, stderr=subprocess.PIPE)
         else:
-            # 여러 커밋의 경우 range diff 사용
-            first_commit = new_commit_hashes[0]
-            last_commit = new_commit_hashes[-1]
+            # 여러 커밋의 경우 첫 커밋 이전부터 마지막 커밋까지의 range diff
+            first_commit = new_commits[0]
+            last_commit = new_commits[-1]
             
-            # 첫 번째 새 커밋의 부모 커밋 찾기
+            # 첫 번째 커밋의 부모 찾기
             parent_output = subprocess.check_output([
-                "gh", "api", f"repos/:owner/:repo/commits/{first_commit}",
-                "--jq", ".parents[0].sha"
+                "git", "rev-parse", f"{first_commit}^"
             ], text=True, stderr=subprocess.PIPE)
-            parent_commit = parent_output.strip().strip('"')
+            parent_commit = parent_output.strip()
             
             # 범위 diff 가져오기
             diff_output = subprocess.check_output([
@@ -188,20 +96,16 @@ def get_new_commits_diff(pr_number: str) -> str:
         
         return diff_output.strip()
         
-    except (subprocess.CalledProcessError, ValueError, json.JSONDecodeError) as e:
-        handle_subprocess_error(e, "get new commits diff", {"pr_number": pr_number})
-        # 실패 시 전체 PR diff로 폴백
+    except subprocess.CalledProcessError:
+        # git 명령 실패 시 전체 PR diff로 폴백
         try:
             diff_output = subprocess.check_output(
                 ["gh", "pr", "diff", pr_number], text=True, stderr=subprocess.PIPE
             )
             return diff_output.strip()
-        except subprocess.CalledProcessError:
+        except subprocess.CalledProcessError as e:
+            handle_subprocess_error(e, "gh pr diff fallback", {"pr_number": pr_number})
             safe_exit(1, "Failed to fetch any diff")
-
-def get_pr_diff(pr_number: str) -> str:
-    """GitHub에서 PR의 diff를 가져옴 (하위 호환성)"""
-    return get_new_commits_diff(pr_number)
 
 def get_review_from_llm(diff: str, api_key: str) -> str:
     """
@@ -252,14 +156,11 @@ def get_review_from_llm(diff: str, api_key: str) -> str:
         safe_exit(1, "LLM API response parsing failed")
 
 
-def post_review_comment(pr_number: str, review: str, commit_hash: str):
-    """GitHub PR에 코드리뷰 댓글을 게시 (리뷰된 커밋 해시 포함)"""
+def post_review_comment(pr_number: str, review: str):
+    """GitHub PR에 코드리뷰 댓글을 게시"""
     try:
-        # 리뷰된 커밋 해시를 댓글에 숨겨진 메타데이터로 추가
-        review_with_commit = f"{review}\n\n<!-- reviewed_commit:{commit_hash} -->"
-        
         subprocess.run(
-            ["gh", "pr", "comment", pr_number, "--body", review_with_commit],
+            ["gh", "pr", "comment", pr_number, "--body", review],
             check=True,
             text=True,
             capture_output=True,
@@ -286,34 +187,19 @@ def main():
 
     # 전체 코드리뷰 프로세스를 컨텍스트로 관리
     with ErrorContext("code review process", pr_number=pr_number):
-        # 리뷰를 건너뛸지 확인 (최신 커밋 해시 기반)
-        if should_skip_review(pr_number):
-            info(f"Latest commit already reviewed for PR #{pr_number}. Skipping code review.")
-            return
-
-        info(f"Fetching diff for PR #{pr_number}")
+        info(f"Fetching new commits diff for PR #{pr_number}")
         diff_output = get_pr_diff(pr_number)
 
         # diff가 비어있는지 확인
         if not diff_output:
-            info(f"No diff found for PR #{pr_number}. Skipping code review.")
+            info(f"No new commits to review for PR #{pr_number}. Skipping code review.")
             return
 
         info("Requesting review from LLM")
         review = get_review_from_llm(diff_output, llm_api_key)
 
-        # 최신 커밋 해시 가져오기
-        try:
-            latest_commit_output = subprocess.check_output([
-                "gh", "pr", "view", pr_number, "--json", "commits",
-                "--jq", ".commits[-1].oid"
-            ], text=True, stderr=subprocess.PIPE)
-            latest_commit = latest_commit_output.strip().strip('"')
-        except subprocess.CalledProcessError:
-            latest_commit = "unknown"
-
         info(f"Posting review to PR #{pr_number}")
-        post_review_comment(pr_number, review, latest_commit)
+        post_review_comment(pr_number, review)
 
         info("Code review comment posted successfully")
 
