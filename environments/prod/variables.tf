@@ -335,6 +335,13 @@ variable "network_acls_default_action" {
   default     = "Allow"
 }
 
+# Azure AI Search configuration
+variable "search_service_name" {
+  description = "Name of the Azure AI Search service"
+  type        = string
+  default     = "artemia-ai-search"
+}
+
 # Monitoring configuration
 variable "primary_action_group_name" {
   description = "Name of the primary action group"

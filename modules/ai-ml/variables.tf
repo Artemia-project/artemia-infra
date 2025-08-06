@@ -41,3 +41,39 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+# Azure AI Search Service variables
+variable "search_service_name" {
+  description = "Name of the Azure AI Search service"
+  type        = string
+}
+
+variable "search_service_sku" {
+  description = "SKU/pricing tier for the Azure AI Search service"
+  type        = string
+  default     = "free"
+}
+
+variable "search_replica_count" {
+  description = "Number of replicas for the search service"
+  type        = number
+  default     = 1
+}
+
+variable "search_partition_count" {
+  description = "Number of partitions for the search service"
+  type        = number
+  default     = 1
+}
+
+variable "search_public_network_access" {
+  description = "Enable public network access for the search service"
+  type        = bool
+  default     = true
+}
+
+variable "search_local_auth_enabled" {
+  description = "Enable local authentication for the search service"
+  type        = bool
+  default     = false
+}

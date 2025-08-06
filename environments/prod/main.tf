@@ -141,6 +141,7 @@ module "ai_ml" {
   kind                        = var.cognitive_kind
   sku_name                    = var.cognitive_sku_name
   network_acls_default_action = var.network_acls_default_action
+  search_service_name         = var.search_service_name
   tags                        = local.tags
 
   depends_on = [azurerm_resource_group.main]
