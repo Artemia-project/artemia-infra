@@ -1,3 +1,4 @@
+# Required variables (no defaults)
 variable "resource_group_name" {
   description = "Name of the resource group"
   type        = string
@@ -29,19 +30,13 @@ variable "backend_nsg_id" {
 }
 
 variable "data_nsg_id" {
-  description = "ID of the Data NSG"
+  description = "ID of the data NSG"
   type        = string
 }
 
 variable "elasticsearch_nsg_id" {
-  description = "ID of the Elasticsearch NSG"
+  description = "ID of the elasticsearch NSG"
   type        = string
-}
-
-variable "admin_username" {
-  description = "Admin username for VMs"
-  type        = string
-  default     = "azureuser"
 }
 
 variable "ssh_public_key_backend" {
@@ -50,13 +45,20 @@ variable "ssh_public_key_backend" {
 }
 
 variable "ssh_public_key_data" {
-  description = "SSH public key for Data VM"
+  description = "SSH public key for data VM"
   type        = string
 }
 
 variable "ssh_public_key_elasticsearch" {
-  description = "SSH public key for Elasticsearch VM"
+  description = "SSH public key for elasticsearch VM"
   type        = string
+}
+
+# Variables with defaults
+variable "admin_username" {
+  description = "Admin username for VMs"
+  type        = string
+  default     = "azureuser"
 }
 
 variable "backend_vm_size" {

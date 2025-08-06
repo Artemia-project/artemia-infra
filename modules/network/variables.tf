@@ -1,3 +1,4 @@
+# Required variables (no defaults)
 variable "resource_group_name" {
   description = "Name of the resource group"
   type        = string
@@ -18,6 +19,12 @@ variable "vnet_name" {
   type        = string
 }
 
+variable "load_balancer_name" {
+  description = "Name of the load balancer"
+  type        = string
+}
+
+# Variables with defaults
 variable "vnet_address_space" {
   description = "Address space for the virtual network"
   type        = list(string)
@@ -36,11 +43,6 @@ variable "firewall_subnet_address_prefixes" {
   default     = ["10.0.1.0/26"]
 }
 
-variable "load_balancer_name" {
-  description = "Name of the load balancer"
-  type        = string
-}
-
 variable "tags" {
   description = "Tags to be applied to resources"
   type        = map(string)
@@ -51,7 +53,7 @@ variable "tags" {
 variable "allowed_ip_ranges" {
   description = "List of IP ranges allowed to access VMs (CIDR notation)"
   type        = list(string)
-  default     = ["0.0.0.0/0"]  # Default allows all - CHANGE FOR PRODUCTION
+  default     = ["0.0.0.0/0"] # Default allows all - CHANGE FOR PRODUCTION
   validation {
     condition = alltrue([
       for cidr in var.allowed_ip_ranges : can(cidrhost(cidr, 0))
@@ -69,7 +71,7 @@ variable "enable_rdp_access" {
 variable "ssh_allowed_ip_ranges" {
   description = "Specific IP ranges allowed for SSH access (more restrictive than general access)"
   type        = list(string)
-  default     = ["0.0.0.0/0"]  # Default allows all - CHANGE FOR PRODUCTION
+  default     = ["0.0.0.0/0"] # Default allows all - CHANGE FOR PRODUCTION
   validation {
     condition = alltrue([
       for cidr in var.ssh_allowed_ip_ranges : can(cidrhost(cidr, 0))
@@ -83,7 +85,7 @@ variable "environment" {
   type        = string
   default     = "prod"
   validation {
-    condition = contains(["dev", "stg", "prod"], var.environment)
+    condition     = contains(["dev", "stg", "prod"], var.environment)
     error_message = "Environment must be one of: dev, stg, prod."
   }
 }
@@ -91,7 +93,7 @@ variable "environment" {
 variable "airflow_ui_allowed_ip_ranges" {
   description = "List of IP ranges allowed to access Airflow UI on port 8080 (CIDR notation)"
   type        = list(string)
-  default     = ["0.0.0.0/0"]  # Default allows all - CHANGE FOR PRODUCTION
+  default     = ["0.0.0.0/0"] # Default allows all - CHANGE FOR PRODUCTION
   validation {
     condition = alltrue([
       for cidr in var.airflow_ui_allowed_ip_ranges : can(cidrhost(cidr, 0))
