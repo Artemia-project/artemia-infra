@@ -63,6 +63,54 @@ resource "azurerm_network_security_rule" "backend_rdp" {
   network_security_group_name = azurerm_network_security_group.backend.name
 }
 
+# Monitoring Dashboard Access (port 3000) - Configurable source IP ranges
+resource "azurerm_network_security_rule" "backend_monitoring" {
+  count                       = length(var.allowed_ip_ranges)
+  name                        = "Monitoring-${count.index + 1}"
+  priority                    = 380 + count.index
+  direction                   = "Inbound"
+  access                      = "Allow"
+  protocol                    = "Tcp"
+  source_port_range           = "*"
+  destination_port_range      = "3000"
+  source_address_prefix       = var.allowed_ip_ranges[count.index]
+  destination_address_prefix  = "*"
+  resource_group_name         = var.resource_group_name
+  network_security_group_name = azurerm_network_security_group.backend.name
+}
+
+# Frontend Access (port 3001) - Configurable source IP ranges
+resource "azurerm_network_security_rule" "backend_frontend" {
+  count                       = length(var.allowed_ip_ranges)
+  name                        = "Frontend-${count.index + 1}"
+  priority                    = 400 + count.index
+  direction                   = "Inbound"
+  access                      = "Allow"
+  protocol                    = "Tcp"
+  source_port_range           = "*"
+  destination_port_range      = "3001"
+  source_address_prefix       = var.allowed_ip_ranges[count.index]
+  destination_address_prefix  = "*"
+  resource_group_name         = var.resource_group_name
+  network_security_group_name = azurerm_network_security_group.backend.name
+}
+
+# API Access (port 8000) - Configurable source IP ranges
+resource "azurerm_network_security_rule" "backend_api" {
+  count                       = length(var.allowed_ip_ranges)
+  name                        = "API-${count.index + 1}"
+  priority                    = 420 + count.index
+  direction                   = "Inbound"
+  access                      = "Allow"
+  protocol                    = "Tcp"
+  source_port_range           = "*"
+  destination_port_range      = "8000"
+  source_address_prefix       = var.allowed_ip_ranges[count.index]
+  destination_address_prefix  = "*"
+  resource_group_name         = var.resource_group_name
+  network_security_group_name = azurerm_network_security_group.backend.name
+}
+
 # NSG Rules for Data VM
 # HTTP Access - Configurable source IP ranges
 resource "azurerm_network_security_rule" "data_http" {
