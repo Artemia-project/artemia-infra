@@ -147,6 +147,19 @@ module "ai_ml" {
   depends_on = [azurerm_resource_group.main]
 }
 
+# Container Registry Module
+module "container_registry" {
+  source = "../../modules/container-registry"
+
+  resource_group_name = azurerm_resource_group.main.name
+  location            = local.location
+  registry_name       = var.registry_name
+  sku                 = var.registry_sku
+  tags                = local.tags
+
+  depends_on = [azurerm_resource_group.main]
+}
+
 # Monitoring Module
 module "monitoring" {
   source = "../../modules/monitoring"

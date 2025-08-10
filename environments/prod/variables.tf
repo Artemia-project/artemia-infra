@@ -585,3 +585,20 @@ variable "use_azure_cli" {
   type        = bool
   default     = true
 }
+
+# Container Registry configuration
+variable "registry_name" {
+  description = "Name of the Container Registry"
+  type        = string
+  default     = "artemiacontainerregistry"
+}
+
+variable "registry_sku" {
+  description = "SKU/pricing tier for the Container Registry"
+  type        = string
+  default     = "Basic"
+  validation {
+    condition     = contains(["Basic", "Standard", "Premium"], var.registry_sku)
+    error_message = "Registry SKU must be Basic, Standard, or Premium."
+  }
+}
