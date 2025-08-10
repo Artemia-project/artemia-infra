@@ -63,7 +63,7 @@ resource "azurerm_network_security_rule" "backend_rdp" {
   network_security_group_name = azurerm_network_security_group.backend.name
 }
 
-# Monitoring Dashboard Access (port 3001) - Configurable source IP ranges
+# Monitoring Dashboard Access (port 4000) - Configurable source IP ranges
 resource "azurerm_network_security_rule" "backend_monitoring" {
   count                       = length(var.allowed_ip_ranges)
   name                        = "Monitoring-${count.index + 1}"
@@ -72,7 +72,7 @@ resource "azurerm_network_security_rule" "backend_monitoring" {
   access                      = "Allow"
   protocol                    = "Tcp"
   source_port_range           = "*"
-  destination_port_range      = "3001"
+  destination_port_range      = "4000"
   source_address_prefix       = var.allowed_ip_ranges[count.index]
   destination_address_prefix  = "*"
   resource_group_name         = var.resource_group_name
