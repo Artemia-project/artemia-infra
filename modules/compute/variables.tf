@@ -70,7 +70,7 @@ variable "backend_vm_size" {
 variable "data_vm_size" {
   description = "Size of the Data VM"
   type        = string
-  default     = "Standard_E4ds_v4"
+  default     = "Standard_D2s_v5"
 }
 
 variable "elasticsearch_vm_size" {
