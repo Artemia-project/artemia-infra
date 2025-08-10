@@ -5,19 +5,27 @@ resource "azurerm_resource_group" "main" {
   tags     = local.tags
 }
 
-# Network Module
+# Network Module with Enhanced Security
 module "network" {
   source = "./modules/network"
 
   resource_group_name              = azurerm_resource_group.main.name
   location                         = local.location
-  project_name                     = "artemia"
-  vnet_name                        = "artemia-vnet"
-  vnet_address_space               = ["10.0.0.0/16"]
-  default_subnet_address_prefixes  = ["10.0.0.0/24"]
-  firewall_subnet_address_prefixes = ["10.0.1.0/26"]
-  load_balancer_name               = "artemia-load-balancer"
-  tags                             = local.tags
+  project_name                     = var.project_name
+  vnet_name                        = var.vnet_name
+  vnet_address_space               = var.vnet_address_space
+  default_subnet_address_prefixes  = var.default_subnet_address_prefixes
+  firewall_subnet_address_prefixes = var.firewall_subnet_address_prefixes
+  load_balancer_name               = var.load_balancer_name
+
+  # Security Configuration
+  allowed_ip_ranges            = var.allowed_ip_ranges
+  ssh_allowed_ip_ranges        = var.ssh_allowed_ip_ranges
+  enable_rdp_access            = var.enable_rdp_access
+  airflow_ui_allowed_ip_ranges = var.airflow_ui_allowed_ip_ranges
+  environment                  = "prod"
+
+  tags = local.tags
 
   depends_on = [azurerm_resource_group.main]
 }
@@ -28,49 +36,58 @@ module "compute" {
 
   resource_group_name  = azurerm_resource_group.main.name
   location             = local.location
-  project_name         = "artemia"
+  project_name         = var.project_name
   subnet_id            = module.network.default_subnet_id
   backend_pool_id      = module.network.backend_pool_id
   backend_nsg_id       = module.network.backend_nsg_id
   data_nsg_id          = module.network.data_nsg_id
   elasticsearch_nsg_id = module.network.elasticsearch_nsg_id
 
-  admin_username               = "azureuser"
+  admin_username               = var.admin_username
   ssh_public_key_backend       = var.ssh_public_key_backend
   ssh_public_key_data          = var.ssh_public_key_data
   ssh_public_key_elasticsearch = var.ssh_public_key_elasticsearch
 
-  backend_vm_size       = "Standard_D2s_v5"
-  data_vm_size          = "Standard_D2s_v5"
-  elasticsearch_vm_size = "Standard_D2s_v5"
+  backend_vm_size       = var.backend_vm_size
+  data_vm_size          = var.data_vm_size
+  elasticsearch_vm_size = var.elasticsearch_vm_size
 
-  backend_storage_account_type       = "StandardSSD_LRS"
-  data_storage_account_type          = "Premium_LRS"
-  elasticsearch_storage_account_type = "Premium_LRS"
+  backend_storage_account_type       = var.backend_storage_account_type
+  data_storage_account_type          = var.data_storage_account_type
+  elasticsearch_storage_account_type = var.elasticsearch_storage_account_type
 
   tags = local.tags
 
   depends_on = [module.network]
 }
 
-# Database Module
+# Database Module with Enhanced Security
 module "database" {
   source = "./modules/database"
 
   resource_group_name          = azurerm_resource_group.main.name
   location                     = local.location
-  project_name                 = "artemia"
-  server_name                  = "artemia-server"
-  database_name                = "artemia-database"
+  project_name                 = var.project_name
+  server_name                  = var.server_name
+  database_name                = var.database_name
   administrator_login          = var.administrator_login
   administrator_login_password = var.administrator_login_password
-  server_version               = "12.0"
-  storage_account_type         = "Local"
-  azuread_authentication_only  = false
-  azuread_admin_login_username = "artemia-group"
-  azuread_admin_object_id      = "d671c231-b875-4048-92f7-39ea71f488c6"
+  server_version               = var.server_version
+  storage_account_type         = var.storage_account_type
+  azuread_authentication_only  = var.azuread_authentication_only
+  azuread_admin_login_username = var.azuread_admin_login_username
+  azuread_admin_object_id      = var.azuread_admin_object_id
   subnet_id                    = module.network.default_subnet_id
-  tags                         = local.tags
+  sku_name                     = var.sku_name
+
+  # Enhanced Security Configuration
+  enable_public_access     = var.enable_database_public_access
+  allowed_ip_ranges        = var.database_allowed_ips
+  enable_auditing          = false
+  audit_storage_account_id = null
+  minimum_tls_version      = "1.2"
+
+  tags = local.tags
 
   depends_on = [azurerm_resource_group.main, module.network]
 }
@@ -81,12 +98,12 @@ module "storage" {
 
   resource_group_name             = azurerm_resource_group.main.name
   location                        = local.location
-  main_storage_account_name       = "artemiadata"
-  state_storage_account_name      = "artemiastatestore"
-  account_tier                    = "Standard"
-  account_replication_type        = "LRS"
-  allow_nested_items_to_be_public = false
-  min_tls_version                 = "TLS1_0"
+  main_storage_account_name       = var.main_storage_account_name
+  state_storage_account_name      = var.state_storage_account_name
+  account_tier                    = var.account_tier
+  account_replication_type        = var.account_replication_type
+  allow_nested_items_to_be_public = var.allow_nested_items_to_be_public
+  min_tls_version                 = var.min_tls_version
   tags                            = local.tags
 
   depends_on = [azurerm_resource_group.main]
@@ -98,16 +115,16 @@ module "messaging" {
 
   resource_group_name          = azurerm_resource_group.main.name
   location                     = local.location
-  namespace_name               = "artemia-event-hubs-kafka"
-  namespace_sku                = "Standard"
-  local_authentication_enabled = false
-  eventhub_name                = "artemia-events"
-  message_retention            = 1
-  partition_count              = 1
-  auth_rule_name               = "RootManageSharedAccessKey"
-  auth_rule_listen             = true
-  auth_rule_manage             = true
-  auth_rule_send               = true
+  namespace_name               = var.namespace_name
+  namespace_sku                = var.namespace_sku
+  local_authentication_enabled = var.local_authentication_enabled
+  eventhub_name                = var.eventhub_name
+  message_retention            = var.message_retention
+  partition_count              = var.partition_count
+  auth_rule_name               = var.auth_rule_name
+  auth_rule_listen             = var.auth_rule_listen
+  auth_rule_manage             = var.auth_rule_manage
+  auth_rule_send               = var.auth_rule_send
   tags                         = local.tags
 
   depends_on = [azurerm_resource_group.main]
@@ -119,12 +136,26 @@ module "ai_ml" {
 
   resource_group_name         = azurerm_resource_group.main.name
   location                    = local.location
-  cognitive_account_name      = "artemia-openai"
-  custom_subdomain_name       = "artemia-openai"
-  kind                        = "OpenAI"
-  sku_name                    = "S0"
-  network_acls_default_action = "Allow"
+  cognitive_account_name      = var.cognitive_account_name
+  custom_subdomain_name       = var.custom_subdomain_name
+  kind                        = var.cognitive_kind
+  sku_name                    = var.cognitive_sku_name
+  network_acls_default_action = var.network_acls_default_action
+  search_service_name         = var.search_service_name
   tags                        = local.tags
+
+  depends_on = [azurerm_resource_group.main]
+}
+
+# Container Registry Module
+module "container_registry" {
+  source = "./modules/container-registry"
+
+  resource_group_name = azurerm_resource_group.main.name
+  location            = local.location
+  registry_name       = var.registry_name
+  sku                 = var.registry_sku
+  tags                = local.tags
 
   depends_on = [azurerm_resource_group.main]
 }
@@ -134,10 +165,10 @@ module "monitoring" {
   source = "./modules/monitoring"
 
   resource_group_name           = azurerm_resource_group.main.name
-  primary_action_group_name     = "artemia-ag"
-  recommended_action_group_name = "RecommendedAlertRules-AG-1"
-  primary_short_name            = "Artemia AG"
-  recommended_short_name        = "recalert1"
+  primary_action_group_name     = var.primary_action_group_name
+  recommended_action_group_name = var.recommended_action_group_name
+  primary_short_name            = var.primary_short_name
+  recommended_short_name        = var.recommended_short_name
   primary_email                 = var.primary_email
   secondary_email               = var.secondary_email
 
@@ -147,12 +178,60 @@ module "monitoring" {
     "artemia-elasticsearch-vm" = module.compute.elasticsearch_vm_id
   }
 
-  cpu_threshold         = 80
-  memory_threshold      = 1000000000
-  disk_iops_threshold   = 95
-  network_in_threshold  = 500000000000
-  network_out_threshold = 200000000000
+  cpu_threshold         = var.cpu_threshold
+  memory_threshold      = var.memory_threshold
+  disk_iops_threshold   = var.disk_iops_threshold
+  network_in_threshold  = var.network_in_threshold
+  network_out_threshold = var.network_out_threshold
   tags                  = local.tags
 
   depends_on = [azurerm_resource_group.main, module.compute]
+}
+
+# Functions Module
+module "functions" {
+  source = "./modules/functions"
+
+  resource_group_name          = azurerm_resource_group.main.name
+  location                     = local.location
+  function_app_name            = var.function_app_name
+  app_service_plan_name        = var.app_service_plan_name
+  storage_account_name         = var.function_storage_account_name
+  runtime_name                 = var.function_runtime_name
+  runtime_version              = var.function_runtime_version
+  instance_memory_mb           = var.function_instance_memory_mb
+  maximum_instance_count       = var.function_maximum_instance_count
+  https_only                   = var.function_https_only
+  public_network_access        = var.function_public_network_access
+  key_vault_reference_identity = var.function_key_vault_reference_identity
+
+  tags = local.tags
+
+  depends_on = [azurerm_resource_group.main]
+}
+
+# Auto-shutdown Module for Cost Optimization
+module "auto_shutdown" {
+  source = "./modules/auto-shutdown"
+
+  enable_auto_shutdown       = var.enable_auto_shutdown
+  auto_shutdown_time         = var.auto_shutdown_time
+  auto_shutdown_timezone     = var.auto_shutdown_timezone
+  auto_start_enabled         = var.auto_start_enabled
+  auto_start_time            = var.auto_start_time
+  weekend_shutdown_enabled   = var.weekend_shutdown_enabled
+  enable_advanced_scheduling = var.enable_cost_optimization
+  notification_email         = var.notification_email_shutdown != "" ? var.notification_email_shutdown : var.primary_email
+
+  project_name        = var.project_name
+  location            = local.location
+  resource_group_name = azurerm_resource_group.main.name
+
+  backend_vm_id       = module.compute.backend_vm_id
+  data_vm_id          = module.compute.data_vm_id
+  elasticsearch_vm_id = module.compute.elasticsearch_vm_id
+
+  tags = local.tags
+
+  depends_on = [module.compute]
 }
